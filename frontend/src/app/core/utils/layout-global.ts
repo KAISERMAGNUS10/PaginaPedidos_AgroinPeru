@@ -326,6 +326,12 @@ async function refrescarNotificaciones() {
 }
 
 export function iniciarGlobalPublico() {
+    // Con la contraseña temporal de soporte no se navega la tienda hasta cambiarla.
+    if (obtenerSesionSegura()?.DebeCambiarPassword) {
+        irA('/mi-cuenta', true);
+        return;
+    }
+
     inicializarSesion();
     actualizarContadorCarrito();
     inicializarMenuLateral();

@@ -1,0 +1,75 @@
+<main class="split-layout">
+  <section class="left-panel">
+    <div class="logo">
+      <img src="img/logoagroperu.jpg" alt="Icono" class="logo-icon">
+      <div class="logo-text">
+        <span class="text-cyan">AGROIN</span><span class="text-red">PERU</span> <span class="text-cyan">S.A.C</span>
+      </div>
+    </div>
+
+    <div class="hero-content">
+      <h1>Tu cuenta, siempre protegida.</h1>
+      <p>Usa una contraseña que solo tú conozcas: mínimo 8 caracteres, con mayúscula, minúscula y número.</p>
+    </div>
+
+    <footer class="panel-footer">
+      © 2026 AGROINPERU S.A.C. Todos los derechos reservados.
+    </footer>
+  </section>
+
+  <section class="right-panel">
+    <div class="forms-container">
+      <div class="form-card">
+        <h2>Mi cuenta</h2>
+
+        @if (sesion(); as s) {
+          <p class="subtitle">{{ s.Nombre }} {{ s.Apellidos }}</p>
+
+          @if (s.DebeCambiarPassword) {
+            <div class="aviso-temporal">
+              Estás usando la <b>contraseña temporal</b> que te asignó soporte. Crea una nueva para continuar.
+            </div>
+          }
+
+          <dl class="datos-cuenta">
+            <dt>Correo</dt><dd>{{ s.Correo }}</dd>
+            @if (datos()?.DocumentoNumero) {
+              <dt>Documento</dt><dd>{{ datos()?.DocumentoTipo }} {{ datos()?.DocumentoNumero }}</dd>
+            }
+            @if (datos()?.Telefono) {
+              <dt>Celular</dt><dd>{{ datos()?.Telefono }}</dd>
+            }
+          </dl>
+
+          <h3 style="margin: 0 0 14px; font-size: 1.1rem; color: #0F172A;">Cambiar contraseña</h3>
+          <form (ngSubmit)="cambiar()">
+            <div class="input-group">
+              <label for="pass-actual">{{ s.DebeCambiarPassword ? 'Contraseña temporal (12345678)' : 'Contraseña actual' }}</label>
+              <input type="password" id="pass-actual" name="actual" autocomplete="current-password" required [(ngModel)]="actual">
+            </div>
+            <div class="input-group">
+              <label for="pass-nueva">Nueva contraseña</label>
+              <input type="password" id="pass-nueva" name="nueva" autocomplete="new-password" required [(ngModel)]="nueva">
+            </div>
+            <div class="input-group">
+              <label for="pass-confirmar">Confirmar nueva contraseña</label>
+              <input type="password" id="pass-confirmar" name="confirmar" autocomplete="new-password" required [(ngModel)]="confirmar">
+            </div>
+            <div class="form-error" aria-live="polite">{{ error() }}</div>
+            <button type="submit" class="btn-primary" [disabled]="guardando()">
+              {{ guardando() ? 'Guardando...' : 'Guardar nueva contraseña' }}
+            </button>
+          </form>
+
+          @if (!s.DebeCambiarPassword) {
+            <div class="divider">
+              <a [routerLink]="destino()" style="color: #00AEEF; font-weight: bold; text-decoration: none;">← Volver</a>
+            </div>
+          }
+        } @else {
+          <p class="subtitle">Cargando…</p>
+        }
+      </div>
+    </div>
+  </section>
+</main>

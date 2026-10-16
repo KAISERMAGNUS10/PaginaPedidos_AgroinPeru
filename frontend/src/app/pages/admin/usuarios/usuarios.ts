@@ -14,7 +14,7 @@ interface UsuarioFila {
   Nombre: string;
   Apellidos: string;
   Correo: string;
-  Rol: 'ADMIN' | 'CAJA' | 'PICKING' | 'CLIENTE';
+  Rol: 'ADMIN' | 'CAJA' | 'PICKING' | 'SOPORTE' | 'CLIENTE';
   Telefono: string;
   DocumentoTipo: string;
   DocumentoNumero: string;
@@ -27,6 +27,7 @@ const ROLES = [
   { v: 'ADMIN', t: 'Administrador', clase: 'ap-b-violeta' },
   { v: 'CAJA', t: 'Cajero', clase: 'ap-b-azul' },
   { v: 'PICKING', t: 'Almacenero', clase: 'ap-b-ambar' },
+  { v: 'SOPORTE', t: 'Soporte', clase: 'ap-b-verde' },
   { v: 'CLIENTE', t: 'Cliente', clase: 'ap-b-gris' }
 ];
 
@@ -87,7 +88,7 @@ export class Usuarios {
   }
 
   protected rolInfo(rol: string) {
-    return ROLES.find(r => r.v === rol) ?? ROLES[3];
+    return ROLES.find(r => r.v === rol) ?? ROLES[ROLES.length - 1];
   }
 
   protected claseEstado(e: string): string {

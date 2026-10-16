@@ -66,8 +66,15 @@ function iniciarLogin() {
                     Apellidos: usuario.Apellidos,
                     Correo: usuario.Correo,
                     Rol: usuario.Rol,
+                    DebeCambiarPassword: usuario.DebeCambiarPassword === true,
                     token
                 });
+
+                // Entró con la contraseña temporal de soporte: primero debe crear una nueva.
+                if (usuario.DebeCambiarPassword) {
+                    irA('/mi-cuenta');
+                    return;
+                }
 
                 await sincronizarCarritoAlIniciarSesion();
                 irA(destinoPorRol(usuario.Rol));
@@ -83,6 +90,57 @@ function iniciarLogin() {
             } finally {
                 boton.disabled = false;
                 boton.textContent = 'Iniciar Sesión';
+            }
+        });
+
+        iniciarRecuperar();
+}
+
+// "¿Olvidaste tu contraseña?": deja una solicitud para el área de soporte.
+function iniciarRecuperar() {
+        const login = document.getElementById('login-section');
+        const recuperar = document.getElementById('recuperar-section');
+        const form = document.getElementById('recuperarForm');
+        const ok = document.getElementById('recuperar-ok');
+        const error = document.getElementById('recuperar-error');
+        const boton = document.getElementById('btnRecuperar');
+
+        const mostrar = (enRecuperar) => {
+            login.style.display = enRecuperar ? 'none' : '';
+            recuperar.style.display = enRecuperar ? '' : 'none';
+            form.style.display = '';
+            ok.style.display = 'none';
+            error.textContent = '';
+        };
+
+        document.getElementById('link-recuperar').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('recCorreo').value = document.getElementById('loginCorreo').value.trim();
+            mostrar(true);
+        });
+        document.getElementById('link-volver-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            mostrar(false);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            error.textContent = '';
+
+            const correo = document.getElementById('recCorreo').value.trim().toLowerCase();
+            const documentoNumero = document.getElementById('recDocumento').value.trim();
+
+            boton.disabled = true;
+            boton.textContent = 'Enviando...';
+            try {
+                await api.post('/auth/recuperar', { correo, documentoNumero }, false);
+                form.style.display = 'none';
+                ok.style.display = '';
+            } catch (err) {
+                error.textContent = err.message;
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Enviar solicitud';
             }
         });
 }

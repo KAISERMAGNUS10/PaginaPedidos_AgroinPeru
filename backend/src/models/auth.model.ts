@@ -1,6 +1,6 @@
-export type RolUsuario = 'ADMIN' | 'CAJA' | 'PICKING' | 'CLIENTE';
+export type RolUsuario = 'ADMIN' | 'CAJA' | 'PICKING' | 'SOPORTE' | 'CLIENTE';
 
-export const ROLES_PERSONAL: RolUsuario[] = ['ADMIN', 'CAJA', 'PICKING'];
+export const ROLES_VALIDOS: RolUsuario[] = ['ADMIN', 'CAJA', 'PICKING', 'SOPORTE', 'CLIENTE'];
 
 export interface AuthPayload {
   id: number;
@@ -21,6 +21,8 @@ export interface UsuarioSesion {
   Telefono?: string | null;
   DocumentoTipo?: string;
   DocumentoNumero?: string;
+  /** true cuando soporte le puso la contraseña temporal: debe cambiarla al entrar. */
+  DebeCambiarPassword?: boolean;
 }
 
 export interface RegistroDto {

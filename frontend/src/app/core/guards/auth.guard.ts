@@ -6,7 +6,7 @@ import { AuthService } from '../services/auth.service';
 
 /**
  * Protege las rutas internas: cada rol entra SOLO a su módulo
- * (ADMIN → panel de administración, CAJA → caja, PICKING → almacén).
+ * (ADMIN → panel de administración, CAJA → caja, PICKING → almacén, SOPORTE → soporte).
  * Uso: canActivate: [rolGuard('CAJA')]
  *
  * En el servidor (SSR) no existe localStorage, así que deja pasar:

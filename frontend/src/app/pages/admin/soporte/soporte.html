@@ -1,0 +1,69 @@
+<ap-encabezado titulo="Recuperar contraseñas" subtitulo="Solicitudes de “¿Olvidaste tu contraseña?” enviadas desde el inicio de sesión">
+  <button type="button" class="ap-btn ap-btn-suave" (click)="cargar()"><ap-icono nombre="actualizar" /> Actualizar</button>
+</ap-encabezado>
+
+<div class="ap-alerta aviso ap-mb">
+  Verifica la identidad del usuario antes de restablecer. La contraseña temporal es <strong>12345678</strong> y el sistema le pedirá cambiarla al iniciar sesión.
+</div>
+
+<div class="ap-tabs">
+  @for (e of estados; track e.v) {
+    <button type="button" class="ap-tab" [class.activo]="filtro() === e.v" (click)="filtro.set(e.v)">{{ e.t }} <span class="cuenta">{{ conteo()[e.v] }}</span></button>
+  }
+</div>
+
+@if (error()) { <div class="ap-alerta error ap-mb">{{ error() }}</div> }
+
+<div class="ap-card">
+  <div class="ap-filtros">
+    <div class="ap-buscador">
+      <ap-icono nombre="buscar" />
+      <input class="ap-input" type="search" placeholder="Buscar por nombre, correo o documento…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="ap-cargando"><div class="ap-spinner"></div>Cargando solicitudes…</div>
+  } @else if (visibles().length === 0) {
+    <div class="ap-vacio"><ap-icono nombre="llave" /><p>No hay solicitudes {{ filtro() === 'PENDIENTE' ? 'pendientes' : 'en esta vista' }}.</p></div>
+  } @else {
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead>
+          <tr><th>Usuario</th><th>Documento</th><th>Celular</th><th>Solicitada</th><th>Estado</th><th class="num">Acciones</th></tr>
+        </thead>
+        <tbody>
+          @for (s of visibles(); track s.id) {
+            <tr>
+              <td>
+                <div class="ap-fila-prod">
+                  <span class="ap-avatar" style="width:38px;height:38px;font-size:14px">{{ inicial(s.usuario.nombre) }}</span>
+                  <div><strong>{{ s.usuario.nombre }}</strong><span class="ap-sub">{{ s.usuario.correo }} · {{ s.usuario.rol }}</span></div>
+                </div>
+              </td>
+              <td>{{ s.usuario.documentoTipo }} <span class="ap-mono">{{ s.usuario.documentoNumero }}</span></td>
+              <td>{{ s.usuario.telefono }}</td>
+              <td>{{ fechaHora(s.fechaSolicitud) }}<span class="ap-sub">{{ hace(s.fechaSolicitud) }}</span></td>
+              <td>
+                <span [class]="'ap-badge ' + claseEstado(s.estado)">{{ s.estado }}</span>
+                @if (s.estado !== 'PENDIENTE') {
+                  <span class="ap-sub">{{ s.atendidoPor }} · {{ fechaHora(s.fechaAtencion) }}</span>
+                }
+              </td>
+              <td class="num">
+                @if (s.estado === 'PENDIENTE') {
+                  <button type="button" class="ap-btn ap-btn-primario ap-btn-chico" [disabled]="procesando() === s.id" (click)="restablecer(s)">
+                    <ap-icono nombre="llave" /> Restablecer
+                  </button>
+                  <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" style="margin-left: 6px" [disabled]="procesando() === s.id" (click)="rechazar(s)">Rechazar</button>
+                } @else {
+                  <span class="ap-sub">{{ s.observacion }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

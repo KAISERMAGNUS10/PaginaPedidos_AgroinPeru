@@ -14,6 +14,7 @@ import pedidoRoutes from './routes/pedido.routes';
 import pickingRoutes from './routes/picking.routes';
 import publicRoutes from './routes/public.routes';
 import reporteRoutes from './routes/reporte.routes';
+import soporteRoutes from './routes/soporte.routes';
 import usuarioRoutes from './routes/usuario.routes';
 
 const app: Application = express();
@@ -41,6 +42,7 @@ app.use('/api/inventario', inventarioRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/compras', compraRoutes);
 app.use('/api/reportes', reporteRoutes);
+app.use('/api/soporte', soporteRoutes);
 
 // 404 y errores: SIEMPRE al final.
 app.use(rutaNoEncontrada);

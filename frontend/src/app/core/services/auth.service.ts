@@ -19,7 +19,7 @@ export class AuthService {
 
   esPersonal(): boolean {
     const rol = this.rol();
-    return rol === 'ADMIN' || rol === 'CAJA' || rol === 'PICKING';
+    return rol === 'ADMIN' || rol === 'CAJA' || rol === 'PICKING' || rol === 'SOPORTE';
   }
 
   cerrarSesion(): void {

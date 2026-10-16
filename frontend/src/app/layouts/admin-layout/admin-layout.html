@@ -25,6 +25,9 @@
           <strong>{{ u.Nombre }} {{ u.Apellidos }}</strong>
           <span>{{ rolTexto() }}</span>
         </div>
+        <a routerLink="/mi-cuenta" class="ap-salir" title="Cambiar contraseña" aria-label="Cambiar contraseña">
+          <ap-icono nombre="llave" />
+        </a>
         <button type="button" class="ap-salir" title="Cerrar sesión" aria-label="Cerrar sesión" (click)="salir()">
           <ap-icono nombre="salir" />
         </button>

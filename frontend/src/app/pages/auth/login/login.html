@@ -51,12 +51,43 @@
                             <label>Contraseña</label>
                             <input type="password" id="loginPassword" name="password" placeholder="🔒 ••••••••••" autocomplete="current-password" required>
                         </div>
+                        <div class="link-recuperar-fila">
+                            <a href="#" id="link-recuperar" class="link-recuperar">¿Olvidaste tu contraseña?</a>
+                        </div>
                         <div id="login-error" class="form-error" aria-live="polite"></div>
                         <button type="submit" id="btnLogin" class="btn-primary">Iniciar Sesión</button>
                     </form>
                     
                     <div class="divider">
                         ¿No tienes una cuenta? <a routerLink="/registro" style="color: #00AEEF; font-weight: bold; text-decoration: none;">Regístrate aquí</a>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE RECUPERAR CONTRASEÑA (la atiende el área de soporte) -->
+                <div class="form-card" id="recuperar-section" style="display: none;">
+                    <h2>Recuperar contraseña</h2>
+                    <p class="subtitle">Ingresa el correo y el número de documento de tu cuenta. El área de soporte verificará tus datos.</p>
+
+                    <form id="recuperarForm">
+                        <div class="input-group">
+                            <label for="recCorreo">Correo electrónico</label>
+                            <input type="email" id="recCorreo" placeholder="✉ cliente@agroinperu.com" autocomplete="email" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="recDocumento">Número de documento (DNI o CE)</label>
+                            <input type="text" id="recDocumento" placeholder="Ej. 71234567" autocomplete="off" maxlength="20" required>
+                        </div>
+                        <div id="recuperar-error" class="form-error" aria-live="polite"></div>
+                        <button type="submit" id="btnRecuperar" class="btn-primary">Enviar solicitud</button>
+                    </form>
+
+                    <div id="recuperar-ok" class="recuperar-ok" style="display: none;" aria-live="polite">
+                        <strong>Solicitud enviada.</strong>
+                        <span>Si tus datos son correctos, soporte restablecerá tu contraseña a <b>12345678</b>. Inicia sesión con ella y el sistema te pedirá crear una nueva.</span>
+                    </div>
+
+                    <div class="divider">
+                        <a href="#" id="link-volver-login" style="color: #00AEEF; font-weight: bold; text-decoration: none;">← Volver a iniciar sesión</a>
                     </div>
                 </div>
 

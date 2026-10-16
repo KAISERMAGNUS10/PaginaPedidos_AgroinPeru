@@ -1,7 +1,9 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+import { PG_VALOR_DUPLICADO } from '../config/database';
 import { AuthPayload, RegistroDto, UsuarioSesion } from '../models/auth.model';
+import { SoporteRepository } from '../repositories/soporte.repository';
 import { UsuarioRepository, UsuarioRow } from '../repositories/usuario.repository';
 import { badRequest, conflicto, noAutorizado } from '../utils/errores';
 import {
@@ -15,6 +17,7 @@ import {
 } from '../utils/validadores';
 
 const repo = new UsuarioRepository();
+const repoSoporte = new SoporteRepository();
 
 export function aUsuarioSesion(u: UsuarioRow): UsuarioSesion {
   return {
@@ -25,7 +28,8 @@ export function aUsuarioSesion(u: UsuarioRow): UsuarioSesion {
     Rol: u.nombre_rol,
     Telefono: u.telefono,
     DocumentoTipo: u.tipo_documento,
-    DocumentoNumero: u.numero_documento
+    DocumentoNumero: u.numero_documento,
+    DebeCambiarPassword: Boolean(u.debe_cambiar_password)
   };
 }
 
@@ -118,5 +122,52 @@ export class AuthService {
     }
 
     return aUsuarioSesion(usuario);
+  }
+
+  /** El usuario cambia su propia contraseña (también la temporal que le puso soporte). */
+  async cambiarPassword(idUsuario: number, body: any): Promise<UsuarioSesion> {
+    const actual = pick(body, 'actual', 'passwordActual');
+    if (typeof actual !== 'string' || !actual) {
+      throw badRequest('PASSWORD_ACTUAL_OBLIGATORIA', 'Ingresa tu contraseña actual.');
+    }
+    const nueva = validarPasswordNueva(pick(body, 'nueva', 'passwordNueva'));
+    if (nueva === actual) {
+      throw badRequest('PASSWORD_REPETIDA', 'La nueva contraseña debe ser distinta de la actual.');
+    }
+
+    const usuario = await repo.porId(idUsuario);
+    if (!usuario || usuario.estado !== 'ACTIVO') {
+      throw noAutorizado('CUENTA_NO_DISPONIBLE', 'Tu sesión ya no es válida.');
+    }
+    if (!(await bcrypt.compare(actual, usuario.password_hash))) {
+      throw badRequest('PASSWORD_ACTUAL_INCORRECTA', 'La contraseña actual no es correcta.');
+    }
+
+    await repo.cambiarPassword(idUsuario, await bcrypt.hash(nueva, 12), false);
+    return aUsuarioSesion((await repo.porId(idUsuario))!);
+  }
+
+  /**
+   * "¿Olvidaste tu contraseña?": deja una solicitud para que soporte la atienda.
+   * Solo se registra si el correo y el documento son de la misma cuenta, y la respuesta
+   * es siempre la misma para no revelar qué correos existen.
+   */
+  async solicitarRecuperacion(body: any) {
+    const email = validarEmail(pick(body, 'correo', 'email'));
+    const documento = texto(pick(body, 'documentoNumero', 'documento'));
+    if (!documento) throw badRequest('DOCUMENTO_OBLIGATORIO', 'Ingresa tu número de documento.');
+
+    const usuario = await repo.porEmail(email);
+
+    if (usuario && usuario.numero_documento === documento && !(await repoSoporte.tienePendiente(usuario.id_usuario))) {
+      try {
+        await repoSoporte.crear(usuario.id_usuario);
+      } catch (error: any) {
+        // Dos clics seguidos: el índice único ya dejó una solicitud pendiente.
+        if (error?.code !== PG_VALOR_DUPLICADO) throw error;
+      }
+    }
+
+    return { recibida: true };
   }
 }

@@ -53,6 +53,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/client/mis-pedidos/mis-pedidos').then(m => m.MisPedidos)
       },
       {
+        path: 'mi-cuenta',
+        title: 'AGROINPERU - Mi cuenta',
+        loadComponent: () => import('./pages/client/mi-cuenta/mi-cuenta').then(m => m.MiCuenta)
+      },
+      {
         path: 'ticket',
         title: 'AGROINPERU - Ticket de Pago',
         loadComponent: () => import('./pages/client/ticket/ticket').then(m => m.Ticket)
@@ -116,6 +121,12 @@ export const routes: Routes = [
         title: 'AGROINPERU - Almacén',
         canActivate: [rolGuard('PICKING')],
         loadComponent: () => import('./pages/admin/picking/picking').then(m => m.Picking)
+      },
+      {
+        path: 'soporte',
+        title: 'AGROINPERU - Soporte',
+        canActivate: [rolGuard('SOPORTE')],
+        loadComponent: () => import('./pages/admin/soporte/soporte').then(m => m.Soporte)
       }
     ]
   },

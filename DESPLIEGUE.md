@@ -56,6 +56,7 @@ Solo falta copiar la **cadena de conexión**:
 | Administrador | admin@agroinperu.com | Admin1234 |
 | Cajero | caja@agroinperu.com | Caja1234 |
 | Almacén | picking@agroinperu.com | Picking1234 |
+| Soporte | soporte@agroinperu.com | Soporte1234 |
 | Cliente | cliente@agroinperu.com | Cliente1234 |
 
 Cada `git push` a `main` vuelve a publicar todo automáticamente.

@@ -26,12 +26,13 @@ const MENU: Record<string, { panel: string; items: ItemMenu[] }> = {
     ]
   },
   CAJA: { panel: 'Caja', items: [{ ruta: '/admin/caja', texto: 'Caja', icono: 'caja', exacto: false }] },
-  PICKING: { panel: 'Almacén', items: [{ ruta: '/admin/picking', texto: 'Almacén', icono: 'almacen', exacto: false }] }
+  PICKING: { panel: 'Almacén', items: [{ ruta: '/admin/picking', texto: 'Almacén', icono: 'almacen', exacto: false }] },
+  SOPORTE: { panel: 'Soporte', items: [{ ruta: '/admin/soporte', texto: 'Recuperar contraseñas', icono: 'llave', exacto: false }] }
 };
 
-const ROLES: Record<string, string> = { ADMIN: 'Administrador', CAJA: 'Cajero', PICKING: 'Almacenero' };
+const ROLES: Record<string, string> = { ADMIN: 'Administrador', CAJA: 'Cajero', PICKING: 'Almacenero', SOPORTE: 'Soporte' };
 
-/** Panel interno: Administrador, Caja y Almacén (menú lateral según el rol). */
+/** Panel interno: Administrador, Caja, Almacén y Soporte (menú lateral según el rol). */
 @Component({
   selector: 'app-admin-layout',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, Icono, ConfirmacionVista],
@@ -53,7 +54,15 @@ export class AdminLayout {
 
   constructor() {
     // La sesión vive en localStorage (solo navegador): se lee después del primer render.
-    afterNextRender(() => this.usuario.set(this.auth.sesion()));
+    afterNextRender(() => {
+      const sesion = this.auth.sesion();
+      // Con la contraseña temporal de soporte, primero debe cambiarla.
+      if (sesion?.DebeCambiarPassword) {
+        this.router.navigateByUrl('/mi-cuenta', { replaceUrl: true });
+        return;
+      }
+      this.usuario.set(sesion);
+    });
   }
 
   protected salir(): void {

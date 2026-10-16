@@ -36,6 +36,7 @@ backend/
 | ADMIN   | admin@agroinperu.com    | Admin1234    |
 | CAJA    | caja@agroinperu.com     | Caja1234     |
 | PICKING | picking@agroinperu.com  | Picking1234  |
+| SOPORTE | soporte@agroinperu.com  | Soporte1234  |
 | CLIENTE | cliente@agroinperu.com  | Cliente1234  |
 
 ## Expiración de pedidos
@@ -63,6 +64,15 @@ Rutas protegidas: header `Authorization: Bearer <token>`. **ADMIN** puede entrar
 |---|---|---|
 | POST | `/api/auth/login` | `{email, password}` → `{token, usuario:{Nombre,Apellidos,Correo,Rol,...}}` |
 | GET | `/api/auth/me` | Sesión actual |
+| PUT | `/api/auth/password` | `{actual, nueva}` cambia la propia contraseña |
+| POST | `/api/auth/recuperar` | `{correo, documentoNumero}` deja una solicitud para soporte (respuesta siempre igual) |
+
+### Soporte (SOPORTE / ADMIN)
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/soporte/solicitudes?estado=` | Solicitudes de recuperación (PENDIENTE, ATENDIDA, RECHAZADA) |
+| POST | `/api/soporte/solicitudes/:id/restablecer` | Pone la contraseña temporal `12345678` y obliga a cambiarla al entrar |
+| POST | `/api/soporte/solicitudes/:id/rechazar` | `{motivo}` cierra la solicitud sin cambios |
 
 ### Cliente (rol CLIENTE)
 | Método | Ruta | Descripción |

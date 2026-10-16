@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 
-import { RolUsuario } from '../models/auth.model';
+import { ROLES_VALIDOS, RolUsuario } from '../models/auth.model';
 import { UsuarioRepository } from '../repositories/usuario.repository';
 import { badRequest, conflicto, noEncontrado } from '../utils/errores';
 import {
@@ -27,12 +27,12 @@ export class UsuarioService {
     }));
   }
 
-  /** El ADMIN crea cuentas (ADMIN / CAJA / PICKING / CLIENTE). */
+  /** El ADMIN crea cuentas (ADMIN / CAJA / PICKING / SOPORTE / CLIENTE). */
   async crearPersonal(body: any) {
     const rol = texto(body?.rol).toUpperCase() as RolUsuario;
 
-    if (!['ADMIN', 'CAJA', 'PICKING', 'CLIENTE'].includes(rol)) {
-      throw badRequest('ROL_INVALIDO', 'Rol permitido: ADMIN, CAJA, PICKING o CLIENTE.');
+    if (!ROLES_VALIDOS.includes(rol)) {
+      throw badRequest('ROL_INVALIDO', 'Rol permitido: ADMIN, CAJA, PICKING, SOPORTE o CLIENTE.');
     }
 
     const nombres = texto(body?.nombre);
@@ -114,7 +114,7 @@ export class UsuarioService {
     }
     if (body?.rol !== undefined) {
       const rol = texto(body.rol).toUpperCase() as RolUsuario;
-      if (!['ADMIN', 'CAJA', 'PICKING', 'CLIENTE'].includes(rol)) throw badRequest('ROL_INVALIDO', 'Rol no válido.');
+      if (!ROLES_VALIDOS.includes(rol)) throw badRequest('ROL_INVALIDO', 'Rol no válido.');
       if (id === idAdmin && rol !== 'ADMIN') throw badRequest('AUTO_ROL', 'No puedes quitarte el rol de administrador.');
       const idRol = await repo.idRol(rol);
       if (!idRol) throw new Error(`El rol ${rol} no existe`);

@@ -16,6 +16,7 @@ export interface UsuarioRow extends Fila {
   estado: 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO';
   fecha_registro: Date;
   ultimo_acceso: Date | null;
+  debe_cambiar_password?: number;
 }
 
 const SELECT_USUARIO = `
@@ -102,6 +103,14 @@ export class UsuarioRepository {
       rol ? [rol] : []
     );
     return rows;
+  }
+
+  /** Guarda un nuevo hash de contraseña. `temporal` = la puso soporte y debe cambiarse al entrar. */
+  async cambiarPassword(id: number, hash: string, temporal: boolean, conexion?: Conexion): Promise<void> {
+    await (conexion ?? pool).execute(
+      'UPDATE tbl_usuarios SET password_hash = ?, debe_cambiar_password = ? WHERE id_usuario = ?',
+      [hash, temporal ? 1 : 0, id]
+    );
   }
 
   async cambiarEstado(id: number, estado: string): Promise<void> {
