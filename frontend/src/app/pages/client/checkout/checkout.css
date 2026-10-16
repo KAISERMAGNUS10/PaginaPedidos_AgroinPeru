@@ -1,0 +1,197 @@
+/* ==========================================
+   ESTILOS PROPIOS DE CHECKOUT
+   (El header vive en header.css, no lo dupliques aquí)
+========================================== */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.checkout-container {
+    display: flex;
+    gap: 25px;
+    max-width: 1050px;
+    margin: 30px auto 50px auto;
+    padding: 0 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.checkout-form-section {
+    flex: 2;
+    min-width: 300px;
+    background: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.checkout-form-section h2 {
+    margin-top: 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.pickup-only-notice {
+    background: #E8F5E9;
+    border: 1px solid #B7E1B9;
+    color: #256029;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    margin-bottom: 25px;
+}
+
+/* Selector Boleta / Factura */
+.comprobante-toggle {
+    display: flex;
+    gap: 15px;
+}
+
+.comprobante-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.comprobante-option:has(input:checked) {
+    border-color: #0F4782;
+    background: #EAF2FA;
+    font-weight: bold;
+}
+
+.input-row {
+    display: flex;
+    gap: 15px;
+}
+
+.input-row .input-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.input-group {
+    margin-bottom: 18px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    font-family: Arial, sans-serif;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    border-color: #0F4782;
+}
+
+.input-group input.input-invalid {
+    border-color: #E30613;
+    background: #FFF5F5;
+}
+
+.input-error {
+    display: block;
+    color: #E30613;
+    font-size: 12px;
+    margin-top: 4px;
+    min-height: 14px;
+}
+
+.campo-ayuda {
+    display: block;
+    font-size: 11.5px;
+    color: #94A3B8;
+    margin-top: 5px;
+}
+
+.campo-bloqueado {
+    background-color: #EFEFEF;
+    color: #6B7280;
+    cursor: not-allowed;
+}
+
+.btn-confirm-order {
+    width: 100%;
+    background: #00c853;
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.btn-confirm-order:hover:not(:disabled) {
+    background: #00a650;
+}
+
+.btn-confirm-order:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.checkout-summary-section {
+    flex: 1;
+    min-width: 260px;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    position: sticky;
+    top: 20px;
+}
+
+.checkout-summary-section h3 {
+    margin-top: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    color: #555;
+    font-size: 14px;
+}
+
+.summary-total {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    margin-top: 5px;
+}
+
+@media (max-width: 600px) {
+    .input-row { flex-direction: column; gap: 0; }
+    .comprobante-toggle { flex-direction: column; }
+}

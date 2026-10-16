@@ -1,0 +1,106 @@
+<header class="navbar-tottus">
+        <div class="header-left">
+            <a routerLink="/" class="logo-container">
+                <img src="img/logoagroperu.jpg" alt="Agroinperu" class="logo-drop">
+                <span class="logo-text">
+                    <span class="text-blue">AGROIN</span><span class="text-red">PERU</span> <span class="text-blue">S.A.C</span>
+                </span>
+            </a>
+            <button class="btn-menu-tottus" id="btn-main-menu">
+                <span>☰</span> Menú
+            </button>
+        </div>
+
+        <div class="header-search">
+            <input type="text" placeholder="Buscar en Agroinperu (conexiones, válvulas, mangueras...)" id="header-search-input">
+            <button type="button" class="btn-search" id="btn-header-search">🔍</button>
+        </div>
+
+        <div class="header-right">
+            <div class="user-session-container">
+                <div id="user-trigger" class="user-trigger">
+                    <div class="user-text-box">
+                        <span class="user-greeting-label">Hola,</span>
+                        <span class="user-name-label" id="user-display-name">Inicia sesión ⌄</span>
+                    </div>
+                </div>
+                
+                <div id="user-dropdown-menu" class="user-dropdown-tottus">
+                    <p id="dropdown-user-full">Cargando...</p>
+                    <a href="#">Mi cuenta</a>
+                    <a routerLink="/mis-pedidos">Mis Pedidos</a>
+                    <button id="btn-logout-tottus" class="btn-logout-tottus">Cerrar Sesión</button>
+                </div>
+            </div>
+
+            <a href="#" class="nav-extra-link">Mi cuenta</a>
+            <a routerLink="/mis-pedidos" class="nav-extra-link">Mis Pedidos</a>
+
+            <div class="notif-bell-container">
+                <a href="#" id="notif-bell" class="notif-bell-tottus">🔔<span class="notif-bell-dot" id="notif-bell-dot" style="display:none;"></span></a>
+                <div id="notif-dropdown" class="notif-dropdown"></div>
+            </div>
+
+            <a href="#" class="cart-tottus">
+                🛒 <span class="cart-badge" id="cart-counter">0</span>
+            </a>
+        </div>
+    </header>
+
+    <div id="menu-overlay" class="menu-overlay"></div>
+
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h2>Categorías</h2>
+            <button id="btn-close-menu" class="btn-close-menu">✖</button>
+        </div>
+
+        <div class="side-menu-content">
+            <p class="side-filter-help">Explora el catálogo por categoría.</p>
+            <div id="product-category-links"></div>
+        </div>
+    </div>
+
+    <main class="container" style="margin-top: 40px;">
+        <a routerLink="/" class="back-link">← Volver al catálogo</a>
+
+        <div class="product-details">
+            <div class="product-image">
+                <img id="detalle-img" src="" alt="Producto">
+            </div>
+            <div class="product-info">
+                <span class="detail-badge" id="detalle-categoria">Riego Tecnificado</span>
+                <h2 id="detalle-nombre">Cargando...</h2>
+                <p class="product-measure" id="detalle-medida"></p>
+                <p class="price-large" id="detalle-precio">S/ 0.00</p>
+                <div class="product-packaging">
+                    <div>
+                        <span>Cantidad por caja</span>
+                        <strong id="detalle-caja">-</strong>
+                    </div>
+                    <div>
+                        <span>Cantidad por bolsa</span>
+                        <strong id="detalle-bolsa">-</strong>
+                    </div>
+                </div>
+                <div class="detail-copy-block">
+                    <span class="detail-copy-title">Descripción</span>
+                    <p class="description" id="detalle-descripcion"></p>
+                </div>
+
+                <div class="cart-controls" style="max-width: 300px;">
+                    <button class="btn-add-initial" id="btn-add-main" type="button">+ Agregar al carrito</button>
+                    <div class="qty-control" id="qty-control-main" style="display: none;">
+                        <button class="qty-btn" id="btn-menos" type="button">🗑️</button>
+                        <span class="qty-val" id="qty-val-main">1 un</span>
+                        <button class="qty-btn" id="btn-mas" type="button">+</button>
+                    </div>
+                </div>
+
+                <div class="contact-actions">
+                    <a id="link-whatsapp" href="#" target="_blank" class="btn-contact btn-whatsapp">📱 Cotizar por WhatsApp</a>
+                    <a id="link-email" href="#" class="btn-contact btn-email">✉️ Enviar Correo</a>
+                </div>
+            </div>
+        </div>
+    </main>

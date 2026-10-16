@@ -1,0 +1,164 @@
+<ap-encabezado titulo="Compras" subtitulo="Ingreso de mercadería desde proveedores (suma stock automáticamente)">
+  <button type="button" class="ap-btn ap-btn-suave" (click)="exportar()" [disabled]="compras().length === 0"><ap-icono nombre="descargar" /> Exportar CSV</button>
+  <button type="button" class="ap-btn ap-btn-primario" (click)="nueva()"><ap-icono nombre="mas" /> Nueva compra</button>
+</ap-encabezado>
+
+<div class="ap-grid ap-grid-kpi">
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono ambar"><ap-icono nombre="compras" /></div><div><small>Total comprado</small><strong>{{ soles(resumen().total) }}</strong><em>incluye IGV · sin anuladas</em></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono azul"><ap-icono nombre="inventario" /></div><div><small>Compras registradas</small><strong>{{ resumen().cantidad }}</strong></div></div>
+</div>
+
+@if (error()) { <div class="ap-alerta error ap-mb">{{ error() }}</div> }
+
+<div class="ap-card">
+  <div class="ap-filtros">
+    <div class="ap-campo"><label for="c-desde">Desde</label><input id="c-desde" type="date" class="ap-input" [(ngModel)]="desde" /></div>
+    <div class="ap-campo"><label for="c-hasta">Hasta</label><input id="c-hasta" type="date" class="ap-input" [(ngModel)]="hasta" /></div>
+    <div class="ap-campo">
+      <label for="c-est">Estado</label>
+      <select id="c-est" class="ap-select" [(ngModel)]="estado"><option value="">Todas</option><option value="REGISTRADA">Registradas</option><option value="ANULADA">Anuladas</option></select>
+    </div>
+    <div class="ap-buscador" style="margin-left: auto">
+      <ap-icono nombre="buscar" />
+      <input class="ap-input" type="search" placeholder="Código, proveedor, RUC o comprobante…" [(ngModel)]="busqueda" (keyup.enter)="cargar()" />
+    </div>
+    <button type="button" class="ap-btn ap-btn-primario" (click)="cargar()">Filtrar</button>
+  </div>
+
+  @if (cargando()) {
+    <div class="ap-cargando"><div class="ap-spinner"></div>Cargando compras…</div>
+  } @else if (compras().length === 0) {
+    <div class="ap-vacio"><ap-icono nombre="compras" /><p>No hay compras registradas en este periodo.</p></div>
+  } @else {
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead><tr><th>Código</th><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th>Destino</th><th class="num">Unid.</th><th class="num">Total</th><th>Estado</th><th class="num">Acciones</th></tr></thead>
+        <tbody>
+          @for (c of compras(); track c.id) {
+            <tr>
+              <td class="ap-mono">{{ c.id }}</td>
+              <td>{{ fechaHora(c.fecha) }}<span class="ap-sub">{{ c.usuario }}</span></td>
+              <td>{{ c.proveedor }}<span class="ap-sub">{{ c.ruc || 'Sin RUC' }}</span></td>
+              <td>{{ c.tipoComprobante }}<span class="ap-sub">{{ c.numeroComprobante || '—' }}</span></td>
+              <td>{{ c.ubicacion === 'ALMACEN' ? 'Almacén' : 'Tienda' }}</td>
+              <td class="num">{{ numero(c.unidades) }}</td>
+              <td class="num"><strong>{{ soles(c.total) }}</strong></td>
+              <td><span class="ap-badge" [class.ap-b-verde]="c.estado === 'REGISTRADA'" [class.ap-b-gris]="c.estado === 'ANULADA'">{{ c.estado }}</span></td>
+              <td class="num" style="white-space: nowrap">
+                <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" (click)="verDetalle(c)"><ap-icono nombre="ojo" /> Ver</button>
+                @if (c.estado === 'REGISTRADA') {
+                  <button type="button" class="ap-btn ap-btn-peligro ap-btn-chico" style="margin-left: 6px" (click)="anular(c)">Anular</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ============ DETALLE ============ -->
+<ap-modal [abierto]="detalle() !== null" [titulo]="'Compra ' + (detalle()?.id ?? '')" [ancho]="true" (cerrar)="detalle.set(null)">
+  @if (detalle(); as c) {
+    <div class="cj-datos" style="padding: 0 0 18px">
+      <div><small>Proveedor</small><strong>{{ c.proveedor }}</strong></div>
+      <div><small>RUC</small><strong>{{ c.ruc || '—' }}</strong></div>
+      <div><small>Comprobante</small><strong>{{ c.tipoComprobante }} {{ c.numeroComprobante || '' }}</strong></div>
+      <div><small>Fecha</small><strong>{{ fechaHora(c.fecha) }}</strong></div>
+      <div><small>Destino del stock</small><strong>{{ c.ubicacion === 'ALMACEN' ? 'Almacén' : 'Tienda' }}</strong></div>
+      <div><small>Registrada por</small><strong>{{ c.usuario }}</strong></div>
+      <div><small>Estado</small><span class="ap-badge" [class.ap-b-verde]="c.estado === 'REGISTRADA'" [class.ap-b-gris]="c.estado === 'ANULADA'">{{ c.estado }}</span></div>
+      @if (c.observaciones) { <div><small>Observaciones</small><strong>{{ c.observaciones }}</strong></div> }
+    </div>
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Costo unit.</th><th class="num">Subtotal</th></tr></thead>
+        <tbody>
+          @for (i of c.productos; track i.id) {
+            <tr><td>{{ i.nombre }}<span class="ap-sub ap-mono">{{ i.id }}</span></td><td class="num">{{ i.cantidad }}</td><td class="num">{{ soles(i.costoUnitario) }}</td><td class="num">{{ soles(i.subtotal) }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="ap-resumen-total" style="max-width: 320px; margin: 18px 0 0 auto">
+      <div><span>Subtotal</span><span>{{ soles(c.subtotal) }}</span></div>
+      <div><span>IGV (18%)</span><span>{{ soles(c.igv) }}</span></div>
+      <div class="total"><span>Total</span><span>{{ soles(c.total) }}</span></div>
+    </div>
+  }
+  <div pie>
+    @if (detalle()?.estado === 'REGISTRADA') {
+      <button type="button" class="ap-btn ap-btn-peligro" (click)="anular(detalle()!)">Anular compra</button>
+    }
+    <button type="button" class="ap-btn ap-btn-primario" (click)="detalle.set(null)">Cerrar</button>
+  </div>
+</ap-modal>
+
+<!-- ============ NUEVA COMPRA ============ -->
+<ap-modal [abierto]="modalNueva()" titulo="Registrar compra" [ancho]="true" (cerrar)="modalNueva.set(false)">
+  <div class="ap-form-grid">
+    <div class="ap-campo"><label for="n-prov">Proveedor (nombre o razón social)</label><input id="n-prov" class="ap-input" [(ngModel)]="f.proveedor" /></div>
+    <div class="ap-campo"><label for="n-ruc">RUC del proveedor (opcional)</label><input id="n-ruc" class="ap-input" maxlength="11" [(ngModel)]="f.ruc" /></div>
+    <div class="ap-campo">
+      <label for="n-tipo">Tipo de comprobante</label>
+      <select id="n-tipo" class="ap-select" [(ngModel)]="f.tipoComprobante"><option value="FACTURA">Factura</option><option value="BOLETA">Boleta</option><option value="GUIA">Guía de remisión</option><option value="OTRO">Otro</option></select>
+    </div>
+    <div class="ap-campo"><label for="n-num">N° de comprobante</label><input id="n-num" class="ap-input" placeholder="F001-000123" [(ngModel)]="f.numeroComprobante" /></div>
+    <div class="ap-campo">
+      <label for="n-ub">¿Dónde ingresa la mercadería?</label>
+      <select id="n-ub" class="ap-select" [(ngModel)]="f.ubicacion"><option value="ALMACEN">Almacén</option><option value="TIENDA">Tienda</option></select>
+    </div>
+    <div class="ap-campo"><label for="n-obs">Observaciones</label><input id="n-obs" class="ap-input" [(ngModel)]="f.observaciones" /></div>
+  </div>
+
+  <h4 style="margin: 22px 0 10px; font-size: 15px">Productos de la compra</h4>
+  <div class="ap-buscador" style="max-width: none">
+    <ap-icono nombre="buscar" />
+    <input class="ap-input" type="search" placeholder="Escribe 2 o más letras del producto o SKU para agregarlo…" [ngModel]="buscarProd()" (ngModelChange)="buscarProd.set($event)" />
+  </div>
+  @if (resultados().length > 0) {
+    <div class="ap-card" style="margin-top: 6px">
+      @for (p of resultados(); track p.id) {
+        <button type="button" class="ap-btn ap-btn-suave" style="width: 100%; justify-content: space-between; border-radius: 0; border-width: 0 0 1px 0" (click)="agregarProducto(p)">
+          <span style="text-align: left; white-space: normal"><strong>{{ p.nombre }}</strong> <span class="ap-sub ap-mono">{{ p.id }}</span></span>
+          <span class="ap-chip">Stock {{ p.stockTotal }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  @if (items().length === 0) {
+    <div class="ap-vacio" style="padding: 26px">Busca y agrega los productos que compraste.</div>
+  } @else {
+    <div class="ap-tabla-wrap" style="margin-top: 12px">
+      <table class="ap-tabla">
+        <thead><tr><th>Producto</th><th class="num" style="width: 110px">Cantidad</th><th class="num" style="width: 140px">Costo unit. (sin IGV)</th><th class="num">Subtotal</th><th></th></tr></thead>
+        <tbody>
+          @for (it of items(); track it.id; let i = $index) {
+            <tr>
+              <td>{{ it.nombre }}<span class="ap-sub ap-mono">{{ it.id }}</span></td>
+              <td class="num"><input type="number" min="1" class="ap-input" style="text-align: right" [ngModel]="it.cantidad" (ngModelChange)="setCantidad(i, $event)" /></td>
+              <td class="num"><input type="number" min="0" step="0.01" class="ap-input" style="text-align: right" [ngModel]="it.costo" (ngModelChange)="setCosto(i, $event)" /></td>
+              <td class="num"><strong>{{ soles(it.cantidad * it.costo) }}</strong></td>
+              <td class="num"><button type="button" class="ap-btn ap-btn-peligro ap-btn-chico ap-btn-icono" aria-label="Quitar" (click)="quitarItem(i)"><ap-icono nombre="papelera" /></button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="ap-resumen-total" style="max-width: 340px; margin: 18px 0 0 auto">
+      <div><span>{{ unidades() }} unidades · Subtotal</span><span>{{ soles(subtotal()) }}</span></div>
+      <div><span>IGV (18%)</span><span>{{ soles(igv()) }}</span></div>
+      <div class="total"><span>Total</span><span>{{ soles(total()) }}</span></div>
+    </div>
+  }
+
+  @if (errorForm()) { <p class="ap-error" style="margin-top: 14px">{{ errorForm() }}</p> }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="modalNueva.set(false)">Cancelar</button>
+    <button type="button" class="ap-btn ap-btn-exito" [disabled]="guardando() || items().length === 0" (click)="guardar()">
+      <ap-icono nombre="check" /> {{ guardando() ? 'Registrando…' : 'Registrar compra y sumar stock' }}
+    </button>
+  </div>
+</ap-modal>

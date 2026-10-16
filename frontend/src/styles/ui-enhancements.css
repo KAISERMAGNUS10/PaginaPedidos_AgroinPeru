@@ -1,0 +1,76 @@
+/* UI común T1 */
+.agro-ui-toast-container {
+    position: fixed;
+    right: 22px;
+    top: 84px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+.agro-ui-toast {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    align-items: start;
+    background: #fff;
+    color: #263747;
+    border: 1px solid #dfe6ec;
+    border-left: 5px solid #0F4782;
+    border-radius: 10px;
+    padding: 13px 14px;
+    box-shadow: 0 10px 30px rgba(15, 44, 76, .18);
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: .22s ease;
+    pointer-events: auto;
+}
+.agro-ui-toast.is-visible { opacity: 1; transform: translateY(0); }
+.agro-ui-toast.is-success { border-left-color: #22863a; }
+.agro-ui-toast.is-warning { border-left-color: #d97706; }
+.agro-ui-toast.is-error { border-left-color: #c5221f; }
+.agro-ui-toast-icon { font-size: 18px; line-height: 1.2; }
+.agro-ui-toast strong { display: block; color: #163b61; margin-bottom: 3px; font-size: 13px; }
+.agro-ui-toast span { display: block; font-size: 12.5px; line-height: 1.4; }
+
+.input-invalid,
+.agro-invalid {
+    border-color: #d93025 !important;
+    box-shadow: 0 0 0 3px rgba(217, 48, 37, .08) !important;
+}
+.input-valid,
+.agro-valid {
+    border-color: #239b56 !important;
+}
+.input-error,
+.form-error,
+.agro-field-error { color: #c5221f; font-size: 11.5px; margin-top: 5px; min-height: 14px; }
+
+/* Paleta única de estados en todo el sistema */
+.estado-VIGENTE, .badge-vigente, .status-vigente, .estado-vigente {
+    background: #FFF5CC !important; color: #8A6200 !important; border-color: #F4D35E !important;
+}
+.estado-LISTO_PARA_RECOJO, .badge-listo-para-recojo, .badge-listo, .status-listo {
+    background: #E7F1FF !important; color: #145DA0 !important; border-color: #8DBBEA !important;
+}
+.estado-PAGADO, .badge-pagado, .status-pagado {
+    background: #F0E7FF !important; color: #6D28D9 !important; border-color: #C4B5FD !important;
+}
+.estado-ENTREGADO, .badge-entregado, .status-entregado {
+    background: #E7F7EC !important; color: #1E7A39 !important; border-color: #9BD3AA !important;
+}
+.estado-CANCELADO, .badge-cancelado, .status-cancelado {
+    background: #FDEAEA !important; color: #B42318 !important; border-color: #F2A5A0 !important;
+}
+.estado-EXPIRADO, .badge-expirado, .status-expirado {
+    background: #EEF1F4 !important; color: #66737F !important; border-color: #C7D0D9 !important;
+}
+.estado-badge, .badge-pill, .ticket-status-badge, .admin-estado {
+    border: 1px solid transparent;
+}
+
+@media (max-width: 640px) {
+    .agro-ui-toast-container { right: 16px; top: 76px; }
+}

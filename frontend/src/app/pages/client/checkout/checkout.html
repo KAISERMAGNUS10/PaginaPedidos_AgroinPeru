@@ -1,0 +1,141 @@
+<!-- CABECERA — idéntica al resto del sitio -->
+    <header class="navbar-tottus">
+        <div class="header-left">
+            <a routerLink="/" class="logo-container">
+                <img src="img/logoagroperu.jpg" alt="Agroinperu" class="logo-drop">
+                <span class="logo-text">
+                    <span class="text-blue">AGROIN</span><span class="text-red">PERU</span> <span class="text-blue">S.A.C</span>
+                </span>
+            </a>
+            <button class="btn-menu-tottus" id="btn-main-menu">
+                <span>☰</span> Menú
+            </button>
+        </div>
+
+        <div class="header-search">
+            <input type="text" placeholder="Buscar en Agroinperu (conexiones, válvulas, mangueras...)" id="header-search-input">
+            <button type="button" class="btn-search" id="btn-header-search">🔍</button>
+        </div>
+
+        <div class="header-right">
+            <div class="user-session-container">
+                <div id="user-trigger" class="user-trigger">
+                    <div class="user-text-box">
+                        <span class="user-greeting-label">Hola,</span>
+                        <span class="user-name-label" id="user-display-name">Inicia sesión ⌄</span>
+                    </div>
+                </div>
+                <div id="user-dropdown-menu" class="user-dropdown-tottus">
+                    <p id="dropdown-user-full">Cargando...</p>
+                    <a href="#">Mi cuenta</a>
+                    <a routerLink="/mis-pedidos">Mis Pedidos</a>
+                    <button id="btn-logout-tottus" class="btn-logout-tottus">Cerrar Sesión</button>
+                </div>
+            </div>
+            <a href="#" class="nav-extra-link">Mi cuenta</a>
+            <a routerLink="/mis-pedidos" class="nav-extra-link">Mis Pedidos</a>
+            <div class="notif-bell-container">
+                <a href="#" id="notif-bell" class="notif-bell-tottus">🔔<span class="notif-bell-dot" id="notif-bell-dot" style="display:none;"></span></a>
+                <div id="notif-dropdown" class="notif-dropdown"></div>
+            </div>
+
+            <a routerLink="/carrito" class="cart-tottus">
+                🛒 <span class="cart-badge" id="cart-counter">0</span>
+            </a>
+        </div>
+    </header>
+
+    <div id="menu-overlay" class="menu-overlay"></div>
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h2>Categorías</h2>
+            <button id="btn-close-menu" class="btn-close-menu">✖</button>
+        </div>
+        <div class="side-menu-content">
+            <label><input type="checkbox" checked> Conexiones HDPE</label>
+            <label><input type="checkbox" checked> Válvulas y Portaválvulas</label>
+            <label><input type="checkbox"> Aspersores</label>
+            <label><input type="checkbox"> Mangueras</label>
+        </div>
+    </div>
+
+    <!-- CONTENIDO DEL CHECKOUT -->
+    <main class="checkout-container">
+
+        <section class="checkout-form-section">
+            <h2>Datos de facturación</h2>
+
+            <div class="pickup-only-notice">
+                🏪 <strong>Recojo y pago 100% presencial en tienda.</strong> No procesamos pagos en línea —
+                estos datos son solo para emitir tu comprobante de pago.
+            </div>
+
+            <form id="form-checkout" novalidate>
+
+                <!-- TIPO DE COMPROBANTE -->
+                <div class="input-group">
+                    <label>Tipo de comprobante</label>
+                    <div class="comprobante-toggle">
+                        <label class="comprobante-option">
+                            <input type="radio" name="tipo-comprobante" value="boleta" id="opt-boleta" checked>
+                            Boleta de Venta
+                        </label>
+                        <label class="comprobante-option">
+                            <input type="radio" name="tipo-comprobante" value="factura" id="opt-factura">
+                            Factura
+                        </label>
+                    </div>
+                </div>
+
+                <!-- CAMPO ÚNICO: cambia de etiqueta según Boleta/Factura -->
+                <div class="input-group">
+                    <label id="lbl-nombre-razon">Nombres y Apellidos completos</label>
+                    <input type="text" id="chk-nombre-razon" placeholder="Ej. Juan Pérez Ramírez">
+                    <span class="input-error" id="err-nombre-razon"></span>
+                </div>
+
+                <!-- SELECTOR ÚNICO: sus opciones cambian según Boleta/Factura -->
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Tipo de documento</label>
+                        <select id="chk-tipo-doc">
+                            <option value="dni">DNI</option>
+                            <option value="ce">Pasaporte / Carné de Extranjería</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label id="lbl-num-doc">N° de DNI</label>
+                        <input type="text" id="chk-num-doc" placeholder="8 dígitos" maxlength="8" inputmode="numeric">
+                        <span class="input-error" id="err-num-doc"></span>
+                    </div>
+                </div>
+
+                <!-- CAMPOS COMUNES (sin dirección: todo es recojo presencial) -->
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Correo electrónico</label>
+                        <input type="email" id="chk-email" placeholder="correo@ejemplo.com">
+                        <span class="campo-ayuda">El ticket y comprobante se vincularán automáticamente a este correo de tu cuenta.</span>
+                        <span class="input-error" id="err-email"></span>
+                    </div>
+                    <div class="input-group">
+                        <label>Teléfono de contacto</label>
+                        <input type="tel" id="chk-telefono" placeholder="9XXXXXXXX" maxlength="9" inputmode="numeric">
+                        <span class="input-error" id="err-telefono"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-confirm-order" id="btn-confirmar" disabled>Confirmar Compra</button>
+            </form>
+        </section>
+
+        <section class="checkout-summary-section">
+            <h3>Resumen del pedido</h3>
+            <div id="checkout-items-list"></div>
+            <div class="summary-row summary-total">
+                <span>Total a pagar en caja</span>
+                <span id="checkout-total">S/ 0.00</span>
+            </div>
+        </section>
+
+    </main>

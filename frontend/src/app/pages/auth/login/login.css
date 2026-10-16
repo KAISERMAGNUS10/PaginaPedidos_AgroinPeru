@@ -1,0 +1,226 @@
+/* --- Base --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+    background-color: #F8FAFC;
+    color: #1E293B;
+}
+
+/* --- Layout Dividido --- */
+.split-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- Panel Izquierdo (Hero) --- */
+.left-panel {
+    flex: 1;
+    background: linear-gradient(rgba(15, 71, 130, 0.9), rgba(0, 174, 239, 0.8)), url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1200&q=80') center/cover;
+    color: white;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Logo (Copiado de tus estilos pero con texto blanco para contrastar el fondo oscuro, excepto el rojo) */
+.logo { display: flex; align-items: center; gap: 12px; background: white; padding: 10px 15px; border-radius: 8px; width: fit-content; }
+.logo-icon { height: 40px; width: auto; }
+.logo-text { font-size: 1.4rem; line-height: 1; }
+.text-cyan { color: #00AEEF; font-family: Impact, 'Arial Black', sans-serif; transform: scaleY(1.1); display: inline-block; }
+.text-red { color: #FF0000; font-family: Impact, 'Arial Black', sans-serif; transform: scaleY(1.1); display: inline-block; }
+
+.hero-content {
+    max-width: 500px;
+    margin-top: 40px;
+}
+
+.hero-content h1 {
+    font-size: 2.8rem;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 1.1rem;
+    color: #E0F2FE;
+    margin-bottom: 40px;
+}
+
+.features {
+    list-style: none;
+}
+
+.features li {
+    margin-bottom: 25px;
+}
+
+.features strong {
+    display: block;
+    font-size: 1.1rem;
+    color: #38BDF8; /* Un cian más claro para contrastar sobre azul oscuro */
+    margin-bottom: 5px;
+}
+
+.features span {
+    font-size: 0.95rem;
+    color: #CBD5E1;
+}
+
+.panel-footer {
+    font-size: 0.85rem;
+    color: #94A3B8;
+}
+
+/* --- Panel Derecho (Formularios) --- */
+.right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px 20px;
+    overflow-y: auto;
+    background-color: #F8FAFC;
+}
+
+.forms-container {
+    width: 100%;
+    max-width: 550px;
+}
+
+.form-card {
+    background: white;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    margin-bottom: 25px;
+}
+
+.form-card h2 {
+    font-size: 1.5rem;
+    color: #0F172A;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #64748B;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    outline: none;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    border-color: #00AEEF;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+
+.form-options .remember {
+    color: #475569;
+}
+
+.form-options .forgot-link {
+    color: #00AEEF;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+/* Botones con colores corporativos */
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background-color: #0F4782; /* Azul oscuro AGROINPERU */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #0B335E;
+}
+
+.btn-secondary {
+    width: 100%;
+    padding: 12px;
+    background-color: #00AEEF; /* Cian AGROINPERU */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #008CBE;
+}
+
+.divider {
+    text-align: center;
+    color: #94A3B8;
+    font-size: 0.9rem;
+    margin: 30px 0;
+}
+
+/* Responsive básico para pantallas más pequeñas */
+@media (max-width: 900px) {
+    .split-layout {
+        flex-direction: column;
+    }
+    .left-panel, .right-panel {
+        flex: none;
+        width: 100%;
+    }
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+.hidden {
+    display: none !important;
+}

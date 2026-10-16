@@ -1,0 +1,48 @@
+<div class="ap-shell">
+  <aside class="ap-sidebar" [class.abierto]="menuAbierto()">
+    <div class="ap-brand">
+      <img src="img/logoagroperu.jpg" alt="AGROINPERU" />
+      <div class="ap-brand-text">
+        AGROIN<span class="rojo">PERU</span>
+        <small>S.A.C · {{ config().panel }}</small>
+      </div>
+    </div>
+
+    <div class="ap-nav-titulo">Menú</div>
+    <nav class="ap-nav" aria-label="Navegación del panel">
+      @for (item of config().items; track item.ruta) {
+        <a [routerLink]="item.ruta" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: item.exacto }"
+           (click)="menuAbierto.set(false)">
+          <ap-icono [nombre]="item.icono" /> {{ item.texto }}
+        </a>
+      }
+    </nav>
+
+    @if (usuario(); as u) {
+      <div class="ap-usuario">
+        <div class="ap-avatar">{{ inicial() }}</div>
+        <div class="ap-usuario-datos">
+          <strong>{{ u.Nombre }} {{ u.Apellidos }}</strong>
+          <span>{{ rolTexto() }}</span>
+        </div>
+        <button type="button" class="ap-salir" title="Cerrar sesión" aria-label="Cerrar sesión" (click)="salir()">
+          <ap-icono nombre="salir" />
+        </button>
+      </div>
+    }
+  </aside>
+
+  <div class="ap-fondo-menu" [class.abierto]="menuAbierto()" (click)="menuAbierto.set(false)"></div>
+
+  <div class="ap-main">
+    <header class="ap-topbar">
+      <button type="button" aria-label="Abrir menú" (click)="menuAbierto.set(true)"><ap-icono nombre="menu" /></button>
+      <strong>AGROINPERU · {{ config().panel }}</strong>
+    </header>
+    <main class="ap-contenido">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<ap-confirmacion />

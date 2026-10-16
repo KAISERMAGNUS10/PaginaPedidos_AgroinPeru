@@ -1,0 +1,165 @@
+<div class="registro-topbar">
+        <a routerLink="/" class="registro-logo">
+            <img src="img/logoagroperu.jpg" alt="Agroinperu" class="registro-logo-img">
+            <span class="registro-logo-text">
+                <span class="text-cyan">AGROIN</span><span class="text-red">PERU</span> <span class="text-cyan">S.A.C</span>
+            </span>
+        </a>
+    </div>
+
+    <main class="registro-wrap">
+        <div class="registro-card">
+            <h1>Regístrate para comprar en Agroinperu</h1>
+            <p class="registro-subtitulo">Crea tu cuenta y accede a precios de distribuidor y despacho inmediato.</p>
+
+            <div class="campo-fila">
+                <div class="campo">
+                    <label for="reg-nombre">Nombre</label>
+                    <input type="text" id="reg-nombre" name="nombre" autocomplete="off" form="form-registro">
+                    <span class="campo-error" id="err-nombre"></span>
+                </div>
+                <div class="campo">
+                    <label for="reg-apellidos">Apellidos</label>
+                    <input type="text" id="reg-apellidos" name="apellidos" autocomplete="off" form="form-registro">
+                    <span class="campo-error" id="err-apellidos"></span>
+                </div>
+            </div>
+
+            <div class="campo">
+                <label for="reg-doc-numero">Documento</label>
+                <div class="input-combinado">
+                    <select id="reg-doc-tipo" name="tipoDocumento" autocomplete="off" form="form-registro">
+                        <option value="DNI">DNI</option>
+                        <option value="CE">CE</option>
+                    </select>
+                    <input type="text" id="reg-doc-numero" name="numeroDocumento" maxlength="12" inputmode="numeric" autocomplete="off" form="form-registro">
+                </div>
+                <span class="campo-ayuda" id="ayuda-doc">DNI: 8 dígitos</span>
+                <span class="campo-error" id="err-doc"></span>
+            </div>
+
+            <div class="campo">
+                <label for="reg-celular">Celular</label>
+                <div class="input-combinado">
+                    <span class="prefijo-fijo">+51</span>
+                    <input type="text" id="reg-celular" name="celular" maxlength="9" inputmode="numeric" autocomplete="off" form="form-registro">
+                </div>
+                <span class="campo-ayuda">9 dígitos, sin espacios</span>
+                <span class="campo-error" id="err-celular"></span>
+            </div>
+
+            <form id="form-registro" novalidate>
+                <div class="campo">
+                    <label for="reg-correo">Correo electrónico</label>
+                    <input type="email" id="reg-correo" name="email" autocomplete="email" required>
+                    <span class="campo-error" id="err-correo"></span>
+                </div>
+
+                <div class="campo">
+                    <label for="reg-password">Contraseña</label>
+                    <div class="input-con-icono">
+                        <input type="password" id="reg-password" name="password" autocomplete="new-password" required>
+                        <button type="button" class="btn-ojo" id="btn-toggle-password">👁</button>
+                    </div>
+                </div>
+
+                <div class="matriz-seguridad">
+                    <div class="req-item" id="req-longitud"><span class="req-check">○</span> Mín. 8 caracteres</div>
+                    <div class="req-item" id="req-numero"><span class="req-check">○</span> 1 número</div>
+                    <div class="req-item" id="req-mayuscula"><span class="req-check">○</span> 1 mayúscula</div>
+                    <div class="req-item" id="req-minuscula"><span class="req-check">○</span> 1 minúscula</div>
+                </div>
+
+                <div class="campo-checkbox">
+                    <input type="checkbox" id="chk-terminos">
+                    <label for="chk-terminos">Acepto los Términos y Condiciones de Agroinperu S.A.C.</label>
+                </div>
+                <div class="campo-checkbox">
+                    <input type="checkbox" id="chk-privacidad">
+                    <label for="chk-privacidad">Acepto la Política de Privacidad y Protección de Datos Personales (Ley N° 29733)</label>
+                </div>
+
+                <button type="button" class="btn-legal" id="btn-ver-legal">Ver Términos y Política de Privacidad</button>
+                <button type="submit" class="btn-registrar" id="btn-registrar" disabled>Regístrate</button>
+            </form>
+
+            <div class="registro-login-link">
+                ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión aquí</a>
+            </div>
+        </div>
+    </main>
+
+
+    <div class="legal-modal" id="legal-modal" aria-hidden="true">
+        <div class="legal-modal-overlay" id="legal-modal-overlay"></div>
+        <div class="legal-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title">
+            <div class="legal-modal-header">
+                <div>
+                    <span class="legal-modal-kicker">AGROINPERU S.A.C.</span>
+                    <h2 id="legal-modal-title">Documentos legales</h2>
+                </div>
+                <button type="button" class="legal-modal-close" id="legal-modal-close" aria-label="Cerrar">×</button>
+            </div>
+
+            <div class="legal-tabs" role="tablist">
+                <button type="button" class="legal-tab active" data-legal-tab="terminos" role="tab" aria-selected="true">Términos y Condiciones</button>
+                <button type="button" class="legal-tab" data-legal-tab="privacidad" role="tab" aria-selected="false">Política de Privacidad</button>
+            </div>
+
+            <div class="legal-modal-body">
+                <section class="legal-panel active" data-legal-panel="terminos">
+                    <h3>Términos y Condiciones de Uso</h3>
+                    <p>Última actualización: septiembre de 2026</p>
+                    <h4>1. Finalidad del sitio</h4>
+                    <p>El sitio web de Agroinperu S.A.C. permite consultar productos, registrar una cuenta, generar pedidos, revisar su estado y gestionar el recojo de productos según la operación de la empresa.</p>
+                    <h4>2. Registro de usuario</h4>
+                    <p>El usuario debe proporcionar información verdadera, vigente y completa. Es responsable de mantener la confidencialidad de sus credenciales y de las acciones realizadas desde su cuenta.</p>
+                    <h4>3. Catálogo, precios y disponibilidad</h4>
+                    <p>Los productos, características, precios y disponibilidad mostrados pueden actualizarse. La generación de un pedido no garantiza disponibilidad definitiva hasta que el pedido sea validado dentro del flujo operativo de Agroinperu S.A.C.</p>
+                    <h4>4. Gestión y recojo de pedidos</h4>
+                    <p>Los pedidos siguen los estados definidos por la empresa, como preparación, listo para recojo, pagado, entregado, cancelado o expirado. El cliente debe presentar la información requerida para identificar su pedido y completar el recojo.</p>
+                    <h4>5. Pagos</h4>
+                    <p>Este sitio funciona como gestor de pedidos. El pago se registra de acuerdo con los medios y procedimientos disponibles en el punto de atención de la empresa. El sitio no procesa pagos virtuales.</p>
+                    <h4>6. Cancelaciones y vencimiento</h4>
+                    <p>Los pedidos pueden ser cancelados o expirar conforme a las reglas operativas comunicadas por la empresa. Si un pedido vence, el cliente deberá generar uno nuevo cuando corresponda.</p>
+                    <h4>7. Uso adecuado</h4>
+                    <p>No está permitido utilizar el sitio para alterar información, suplantar identidades, interferir con el funcionamiento del sistema, acceder sin autorización a módulos restringidos o realizar actividades contrarias a la ley.</p>
+                    <h4>8. Propiedad intelectual</h4>
+                    <p>La identidad visual, textos, estructura, logotipos y demás contenidos propios de Agroinperu S.A.C. no pueden ser utilizados de forma no autorizada, salvo los contenidos pertenecientes a terceros.</p>
+                    <h4>9. Disponibilidad del servicio</h4>
+                    <p>Agroinperu S.A.C. puede realizar mantenimientos, actualizaciones o mejoras que ocasionen interrupciones temporales. La empresa procurará mantener la información y funcionamiento del sitio actualizados.</p>
+                    <h4>10. Modificaciones</h4>
+                    <p>Estos términos pueden actualizarse cuando cambien las funcionalidades, procesos internos o disposiciones aplicables. La versión vigente será la publicada en el sitio.</p>
+                    <h4>11. Legislación aplicable</h4>
+                    <p>El uso del sitio se rige por la legislación peruana aplicable. Cualquier consulta relacionada con estos términos podrá ser presentada mediante los canales oficiales de atención de Agroinperu S.A.C.</p>
+                </section>
+
+                <section class="legal-panel" data-legal-panel="privacidad">
+                    <h3>Política de Privacidad y Protección de Datos Personales</h3>
+                    <p>Última actualización: septiembre de 2026</p>
+                    <h4>1. Información que se recopila</h4>
+                    <p>Para el registro y la gestión de pedidos se pueden solicitar nombres, apellidos, tipo y número de documento, número de celular, correo electrónico y la información relacionada con los pedidos realizados.</p>
+                    <h4>2. Finalidades del tratamiento</h4>
+                    <p>Los datos se utilizan para crear y administrar la cuenta del usuario, identificarlo, gestionar pedidos, informar cambios de estado, coordinar el recojo, atender consultas y mantener el historial necesario para la operación del servicio.</p>
+                    <h4>3. Consentimiento</h4>
+                    <p>Cuando corresponda, el usuario autoriza el tratamiento de sus datos al aceptar esta política de manera libre e informada mediante la casilla habilitada durante el registro.</p>
+                    <h4>4. Conservación</h4>
+                    <p>La información será conservada durante el tiempo necesario para cumplir las finalidades descritas y las obligaciones que resulten aplicables a la empresa.</p>
+                    <h4>5. Seguridad</h4>
+                    <p>Agroinperu S.A.C. adoptará medidas razonables para proteger la información frente a pérdida, acceso no autorizado, alteración o uso indebido, de acuerdo con la naturaleza del sistema y de los datos tratados.</p>
+                    <h4>6. Acceso por terceros</h4>
+                    <p>Los datos no serán utilizados para finalidades incompatibles con las informadas. Cuando sea necesario contar con proveedores o terceros para prestar un servicio, el tratamiento deberá limitarse a la finalidad correspondiente y sujetarse a las obligaciones aplicables.</p>
+                    <h4>7. Derechos del titular</h4>
+                    <p>El titular puede solicitar el acceso, actualización, rectificación, cancelación u oposición respecto de sus datos personales, cuando corresponda, mediante los canales oficiales de atención de Agroinperu S.A.C.</p>
+                    <h4>8. Marco de protección de datos</h4>
+                    <p>El tratamiento de datos personales se realizará considerando la Ley N° 29733, Ley de Protección de Datos Personales, y su Reglamento aprobado por el Decreto Supremo N° 016-2024-JUS, además de las disposiciones vigentes que resulten aplicables.</p>
+                    <h4>9. Actualizaciones de la política</h4>
+                    <p>Esta política puede modificarse para reflejar cambios en el servicio, en los procesos internos o en las disposiciones aplicables. La versión vigente será la publicada en el sitio.</p>
+                </section>
+            </div>
+
+            <div class="legal-modal-footer">
+                <button type="button" class="btn-legal-entendido" id="btn-legal-entendido">Entendido</button>
+            </div>
+        </div>
+    </div>

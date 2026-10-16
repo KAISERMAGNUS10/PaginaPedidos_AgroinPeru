@@ -1,0 +1,264 @@
+/* ==========================================
+   ESTILOS DE LA PÁGINA TICKET DE PAGO
+   (El header vive en header.css, no lo dupliques aquí)
+========================================== */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.ticket-page {
+    max-width: 650px;
+    margin: 35px auto 60px auto;
+    padding: 0 20px;
+}
+
+.ticket-card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    padding: 35px 35px 30px 35px;
+}
+
+/* --- Encabezado de la tarjeta --- */
+.ticket-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+}
+
+.ticket-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.ticket-card-header h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 19px;
+    color: #0F4782;
+    letter-spacing: 0.5px;
+}
+
+.ticket-status-badge {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.badge-vigente {
+    background: #E8F5E9;
+    color: #1B7A1F;
+}
+
+.badge-cancelado {
+    background: #FDEAEA;
+    color: #C5221F;
+}
+
+.badge-pagado {
+    background: #E3F2FD;
+    color: #0D47A1;
+}
+
+.badge-listo-para-recojo {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.badge-entregado {
+    background: #ECEFF1;
+    color: #37474F;
+}
+
+.badge-expirado {
+    background: #FDEAEA;
+    color: #C5221F;
+}
+
+/* --- Grid de datos generales --- */
+.ticket-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    margin-bottom: 25px;
+}
+
+.ticket-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.ticket-meta-item span {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.ticket-meta-item strong {
+    font-size: 14px;
+    color: #222;
+    word-break: break-word;
+}
+
+/* --- Tabla de productos --- */
+.ticket-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+}
+
+.ticket-table thead th {
+    text-align: left;
+    background: #F4F7FA;
+    color: #555;
+    padding: 10px 12px;
+    font-size: 11.5px;
+    text-transform: uppercase;
+}
+
+.ticket-table thead th:not(:first-child),
+.ticket-table tbody td:not(:first-child) {
+    text-align: right;
+}
+
+.ticket-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+}
+
+/* --- Bloque de total --- */
+.ticket-total-block {
+    background: #E8F5E9;
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.ticket-total-block span {
+    font-size: 13px;
+    font-weight: bold;
+    color: #1B7A1F;
+    letter-spacing: 0.3px;
+}
+
+.ticket-total-block strong {
+    font-size: 22px;
+    color: #1B7A1F;
+}
+
+/* --- Bloque QR --- */
+.ticket-qr-block {
+    text-align: center;
+    padding: 15px 10px 5px 10px;
+    border-top: 1px dashed #ddd;
+}
+
+.ticket-qr-block img {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 12px;
+}
+
+.ticket-qr-frame {
+    display: inline-block;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 4px;
+}
+
+.ticket-table-empty {
+    text-align: center !important;
+    color: #999;
+    padding: 18px 0 !important;
+}
+
+.ticket-qr-block p {
+    font-size: 12.5px;
+    color: #777;
+    max-width: 380px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* --- Botones --- */
+.ticket-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
+.btn-ticket {
+    padding: 11px 20px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.btn-ticket-secondary {
+    background: #EAF2FA;
+    color: #0F4782;
+}
+
+.btn-ticket-secondary:hover {
+    background: #d7e7f7;
+}
+
+.btn-ticket-primary {
+    background: #0F4782;
+    color: white;
+}
+
+.btn-ticket-primary:hover {
+    background: #0b335e;
+}
+
+.ticket-empty-state {
+    text-align: center;
+    color: #777;
+    margin-top: 40px;
+    font-size: 14px;
+}
+
+.ticket-empty-state a {
+    color: #0F4782;
+    font-weight: bold;
+}
+
+/* --- Vista de impresión: solo la tarjeta del ticket --- */
+@media print {
+    .navbar-tottus, .menu-overlay, .side-menu, .ticket-actions {
+        display: none !important;
+    }
+    .ticket-page {
+        margin: 0;
+        max-width: 100%;
+    }
+    .ticket-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}

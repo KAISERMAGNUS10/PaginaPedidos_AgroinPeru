@@ -1,0 +1,206 @@
+<ap-encabezado titulo="Inventario" subtitulo="Productos, existencias por ubicación y kardex de movimientos">
+  <button type="button" class="ap-btn ap-btn-suave" (click)="abrirKardex()"><ap-icono nombre="reloj" /> Kardex</button>
+  <button type="button" class="ap-btn ap-btn-suave" (click)="exportar()"><ap-icono nombre="descargar" /> Exportar CSV</button>
+  <button type="button" class="ap-btn ap-btn-primario" (click)="nuevoProducto()"><ap-icono nombre="mas" /> Nuevo producto</button>
+</ap-encabezado>
+
+<div class="ap-grid ap-grid-kpi">
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono azul"><ap-icono nombre="inventario" /></div><div><small>Productos activos</small><strong>{{ numero(kpis().productos) }}</strong></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono verde"><ap-icono nombre="almacen" /></div><div><small>Unidades en stock</small><strong>{{ numero(kpis().unidades) }}</strong></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono violeta"><ap-icono nombre="dinero" /></div><div><small>Valor a precio de venta</small><strong>{{ solesCorto(kpis().valor) }}</strong></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono ambar"><ap-icono nombre="alerta" /></div><div><small>Bajo el mínimo</small><strong>{{ kpis().bajo }}</strong></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono rojo"><ap-icono nombre="ban" /></div><div><small>Sin stock</small><strong>{{ kpis().sin }}</strong></div></div>
+</div>
+
+@if (error()) { <div class="ap-alerta error ap-mb">{{ error() }}</div> }
+
+<div class="ap-card">
+  <div class="ap-filtros">
+    <div class="ap-buscador">
+      <ap-icono nombre="buscar" />
+      <input class="ap-input" type="search" placeholder="Buscar por nombre, SKU o categoría…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event); filtroCambio()" />
+    </div>
+    <div class="ap-campo">
+      <select class="ap-select" aria-label="Categoría" [ngModel]="categoria()" (ngModelChange)="categoria.set($event); filtroCambio()">
+        <option value="">Todas las categorías</option>
+        @for (c of categorias(); track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+    </div>
+    <div class="ap-campo">
+      <select class="ap-select" aria-label="Estado de stock" [ngModel]="filtroStock()" (ngModelChange)="filtroStock.set($event); filtroCambio()">
+        <option value="">Todo el stock</option>
+        <option value="bajo">Bajo el mínimo</option>
+        <option value="sin">Sin stock</option>
+        <option value="oculto">Descontinuados</option>
+      </select>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="ap-cargando"><div class="ap-spinner"></div>Cargando inventario…</div>
+  } @else if (visibles().length === 0) {
+    <div class="ap-vacio"><ap-icono nombre="inventario" /><p>No hay productos con esos filtros.</p></div>
+  } @else {
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead>
+          <tr><th>Producto</th><th>Categoría</th><th class="num">Precio</th><th class="num">Tienda</th><th class="num">Almacén</th><th class="num">Total</th><th class="num">Mín.</th><th>Estado</th><th class="num">Acciones</th></tr>
+        </thead>
+        <tbody>
+          @for (p of visibles(); track p.id) {
+            <tr>
+              <td>
+                <div class="ap-fila-prod">
+                  <img class="ap-miniatura" [src]="p.imagen" alt="" loading="lazy" (error)="imagenRota($event)" />
+                  <div><strong>{{ p.nombre }}</strong><span class="ap-sub ap-mono">{{ p.id }}</span></div>
+                </div>
+              </td>
+              <td>{{ p.categoria }}</td>
+              <td class="num">{{ soles(p.precio) }}</td>
+              <td class="num">{{ p.stockTienda }}</td>
+              <td class="num">{{ p.stockAlmacen }}</td>
+              <td class="num"><span [class]="'ap-badge ' + claseStock(p)">{{ p.stockTotal }}</span></td>
+              <td class="num">{{ p.stockMinimo }}</td>
+              <td><span [class]="'ap-badge ' + claseEstado(p.estado)">{{ p.estado }}</span></td>
+              <td class="num"><div class="ap-celda-acciones">
+                <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" (click)="abrirMovimiento(p)">Movimiento</button>
+                <button type="button" class="ap-btn ap-btn-suave ap-btn-chico ap-btn-icono" title="Kardex" aria-label="Kardex" (click)="abrirKardex(p)"><ap-icono nombre="reloj" /></button>
+                <button type="button" class="ap-btn ap-btn-suave ap-btn-chico ap-btn-icono" title="Editar" aria-label="Editar" (click)="editarProducto(p)"><ap-icono nombre="editar" /></button>
+              </div></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="ap-paginador">
+      <span>{{ filtrados().length }} producto(s) · página {{ paginaReal() }} de {{ totalPaginas() }}</span>
+      <div class="botones">
+        <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" [disabled]="paginaReal() === 1" (click)="pagina.set(paginaReal() - 1)">← Anterior</button>
+        <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" [disabled]="paginaReal() === totalPaginas()" (click)="pagina.set(paginaReal() + 1)">Siguiente →</button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ===================== PRODUCTO ===================== -->
+<ap-modal [abierto]="modalProducto()" [titulo]="editandoSku() === null ? 'Nuevo producto' : 'Editar producto'" [ancho]="true" (cerrar)="modalProducto.set(false)">
+  <div class="ap-form-grid">
+    <div class="ap-campo">
+      <label for="p-sku">SKU / Código</label>
+      <input id="p-sku" class="ap-input ap-mono" [disabled]="editandoSku() !== null" placeholder="EJ-CODIGO-001" [(ngModel)]="fp.id" />
+    </div>
+    <div class="ap-campo">
+      <label for="p-cat">Categoría</label>
+      <input id="p-cat" class="ap-input" list="lista-categorias" placeholder="Elige o escribe una nueva" [(ngModel)]="fp.categoria" />
+      <datalist id="lista-categorias">@for (c of categorias(); track c) { <option [value]="c"></option> }</datalist>
+    </div>
+    <div class="ap-campo"><label for="p-nom">Nombre</label><input id="p-nom" class="ap-input" [(ngModel)]="fp.nombre" /></div>
+    <div class="ap-campo"><label for="p-med">Medida</label><input id="p-med" class="ap-input" placeholder='Ej. 1/2" o 90 %' [(ngModel)]="fp.medida" /></div>
+    <div class="ap-campo completo">
+      <label for="p-nomc">Nombre completo (opcional)</label>
+      <input id="p-nomc" class="ap-input" placeholder="Si lo dejas vacío se arma con nombre + medida" [(ngModel)]="fp.nombreCompleto" />
+    </div>
+    <div class="ap-campo"><label for="p-sub">Subcategoría</label><input id="p-sub" class="ap-input" [(ngModel)]="fp.subcategoria" /></div>
+    <div class="ap-campo"><label for="p-precio">Precio de venta (S/, incluye IGV)</label><input id="p-precio" type="number" min="0" step="0.01" class="ap-input" [(ngModel)]="fp.precio" /></div>
+    <div class="ap-campo"><label for="p-caja">Unidades por caja</label><input id="p-caja" type="number" min="0" class="ap-input" [(ngModel)]="fp.cantidadCaja" /></div>
+    <div class="ap-campo"><label for="p-bolsa">Unidades por bolsa</label><input id="p-bolsa" type="number" min="0" class="ap-input" [(ngModel)]="fp.cantidadBolsa" /></div>
+    @if (editandoSku() === null) {
+      <div class="ap-campo"><label for="p-st">Stock inicial en tienda</label><input id="p-st" type="number" min="0" class="ap-input" [(ngModel)]="fp.stockTienda" /></div>
+      <div class="ap-campo"><label for="p-sa">Stock inicial en almacén</label><input id="p-sa" type="number" min="0" class="ap-input" [(ngModel)]="fp.stockAlmacen" /></div>
+    }
+    <div class="ap-campo"><label for="p-min">Stock mínimo (alerta)</label><input id="p-min" type="number" min="0" class="ap-input" [(ngModel)]="fp.stockMinimo" /></div>
+    @if (editandoSku() !== null) {
+      <div class="ap-campo">
+        <label for="p-est">Estado</label>
+        <select id="p-est" class="ap-select" [(ngModel)]="fp.estado">
+          <option value="DISPONIBLE">Disponible</option><option value="AGOTADO">Agotado (no se vende)</option><option value="DESCONTINUADO">Descontinuado (oculto)</option>
+        </select>
+      </div>
+    }
+    <div class="ap-campo completo"><label for="p-img">Imagen (ruta dentro de public/)</label><input id="p-img" class="ap-input" placeholder="img/productos/mangueras/mi-producto.jpg" [(ngModel)]="fp.imagen" /></div>
+    <div class="ap-campo completo"><label for="p-desc">Descripción</label><textarea id="p-desc" class="ap-area" [(ngModel)]="fp.descripcion"></textarea></div>
+  </div>
+  @if (editandoSku() !== null) {
+    <p class="ap-alerta info" style="margin-top: 14px">El stock no se edita aquí: usa el botón <strong>Movimiento</strong> para que quede registrado en el kardex.</p>
+  }
+  @if (errorProducto()) { <p class="ap-error" style="margin-top: 12px">{{ errorProducto() }}</p> }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="modalProducto.set(false)">Cancelar</button>
+    <button type="button" class="ap-btn ap-btn-primario" [disabled]="guardando()" (click)="guardarProducto()">{{ guardando() ? 'Guardando…' : 'Guardar' }}</button>
+  </div>
+</ap-modal>
+
+<!-- ===================== MOVIMIENTO ===================== -->
+<ap-modal [abierto]="modalMov()" titulo="Registrar movimiento de stock" (cerrar)="modalMov.set(false)">
+  @if (movProducto(); as p) {
+    <div class="ap-alerta info" style="margin-bottom: 16px">
+      <strong>{{ p.nombre }}</strong><br />
+      Tienda: <strong>{{ p.stockTienda }}</strong> · Almacén: <strong>{{ p.stockAlmacen }}</strong> · Total: <strong>{{ p.stockTotal }}</strong>
+    </div>
+    <div class="ap-form-grid">
+      <div class="ap-campo completo">
+        <label for="m-tipo">Tipo de movimiento</label>
+        <select id="m-tipo" class="ap-select" [(ngModel)]="fm.tipo" (ngModelChange)="tipoCambio()">
+          <option value="ENTRADA">Entrada (suma stock)</option>
+          <option value="SALIDA">Salida (resta stock)</option>
+          <option value="AJUSTE">Ajuste (fijar el stock final)</option>
+          <option value="TRASLADO">Traslado entre ubicaciones</option>
+        </select>
+      </div>
+      @if (fm.tipo === 'TRASLADO') {
+        <div class="ap-campo"><label for="m-or">Desde</label>
+          <select id="m-or" class="ap-select" [(ngModel)]="fm.origen"><option value="ALMACEN">Almacén</option><option value="TIENDA">Tienda</option></select></div>
+        <div class="ap-campo"><label for="m-de">Hacia</label>
+          <select id="m-de" class="ap-select" [(ngModel)]="fm.destino"><option value="TIENDA">Tienda</option><option value="ALMACEN">Almacén</option></select></div>
+      } @else {
+        <div class="ap-campo"><label for="m-ub">Ubicación</label>
+          <select id="m-ub" class="ap-select" [(ngModel)]="fm.ubicacion" (ngModelChange)="ubicacionCambio()"><option value="ALMACEN">Almacén</option><option value="TIENDA">Tienda</option></select></div>
+      }
+      <div class="ap-campo">
+        <label for="m-cant">{{ fm.tipo === 'AJUSTE' ? 'Stock final' : 'Cantidad' }}</label>
+        <input id="m-cant" type="number" min="0" class="ap-input" [(ngModel)]="fm.cantidad" />
+      </div>
+      <div class="ap-campo completo"><label for="m-mot">Motivo (opcional)</label><input id="m-mot" class="ap-input" placeholder="Ej. Conteo físico, merma, devolución…" [(ngModel)]="fm.motivo" /></div>
+    </div>
+    @if (errorMov()) { <p class="ap-error" style="margin-top: 12px">{{ errorMov() }}</p> }
+  }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="modalMov.set(false)">Cancelar</button>
+    <button type="button" class="ap-btn ap-btn-primario" [disabled]="guardando()" (click)="guardarMovimiento()">{{ guardando() ? 'Guardando…' : 'Registrar' }}</button>
+  </div>
+</ap-modal>
+
+<!-- ===================== KARDEX ===================== -->
+<ap-modal [abierto]="modalKardex()" [titulo]="kardexTitulo()" [ancho]="true" (cerrar)="modalKardex.set(false)">
+  <div class="ap-acciones" style="margin-bottom: 14px">
+    <select class="ap-select" style="width: auto" aria-label="Tipo" [ngModel]="kardexTipo()" (ngModelChange)="kardexTipo.set($event); cargarKardex()">
+      <option value="">Todos los tipos</option><option value="ENTRADA">Entradas</option><option value="SALIDA">Salidas</option>
+      <option value="AJUSTE">Ajustes</option><option value="TRASLADO">Traslados</option>
+    </select>
+  </div>
+  @if (kardexCargando()) {
+    <div class="ap-cargando"><div class="ap-spinner"></div>Cargando…</div>
+  } @else if (kardex().length === 0) {
+    <div class="ap-vacio">No hay movimientos registrados.</div>
+  } @else {
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Ruta</th><th class="num">Cant.</th><th class="num">Antes → Después</th><th>Motivo / Usuario</th></tr></thead>
+        <tbody>
+          @for (m of kardex(); track m.id_movimiento) {
+            <tr>
+              <td style="white-space: nowrap">{{ fechaHora(m.fecha_movimiento) }}</td>
+              <td>{{ m.nombre_completo }}<span class="ap-sub ap-mono">{{ m.codigo_sku }}</span></td>
+              <td><span [class]="'ap-badge ' + claseMov(m.tipo_movimiento)">{{ m.tipo_movimiento }}</span></td>
+              <td>{{ m.ubicacion_origen || '—' }} → {{ m.ubicacion_destino || '—' }}</td>
+              <td class="num"><strong>{{ m.cantidad }}</strong></td>
+              <td class="num">{{ m.stock_anterior }} → {{ m.stock_posterior }}</td>
+              <td>{{ m.motivo || '—' }}<span class="ap-sub">{{ m.usuario }}@if (m.codigo_ticket) { · {{ m.codigo_ticket }} }</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  <div pie><button type="button" class="ap-btn ap-btn-suave" (click)="modalKardex.set(false)">Cerrar</button></div>
+</ap-modal>

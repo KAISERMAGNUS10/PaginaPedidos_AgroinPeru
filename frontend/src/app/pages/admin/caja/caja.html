@@ -1,0 +1,251 @@
+<ap-encabezado titulo="Caja" subtitulo="Cobra los pedidos que almacén dejó listos para recojo">
+  <div class="ap-tabs" style="margin: 0">
+    <button type="button" class="ap-tab" [class.activo]="vista() === 'cobrar'" (click)="vista.set('cobrar')"><ap-icono nombre="caja" /> Cobrar <span class="cuenta">{{ pendientes().length }}</span></button>
+    <button type="button" class="ap-tab" [class.activo]="vista() === 'historial'" (click)="verHistorial()"><ap-icono nombre="ventas" /> Ventas realizadas</button>
+  </div>
+</ap-encabezado>
+
+@if (vista() === 'cobrar') {
+  <div class="cj-layout">
+
+    <!-- ============ Columna izquierda: búsqueda + cola ============ -->
+    <div class="cj-col-izq">
+      <div class="ap-card ap-card-cuerpo">
+        <div class="ap-campo">
+          <label for="cj-buscar">Buscar ticket, DNI o RUC</label>
+          <div style="display: flex; gap: 8px">
+            <div class="ap-buscador" style="max-width: none; min-width: 0">
+              <ap-icono nombre="buscar" />
+              <input id="cj-buscar" class="ap-input" placeholder="TK-2026-00001 · 12345678" autocomplete="off"
+                     [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" (keyup.enter)="buscar()" />
+            </div>
+            <button type="button" class="ap-btn ap-btn-primario" [disabled]="buscando()" (click)="buscar()">Buscar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ap-card" style="display: flex; flex-direction: column; min-height: 0; flex: 1">
+        <div class="ap-card-cab">
+          <h2>{{ resultados() !== null ? 'Resultados (' + resultados()!.length + ')' : 'Por cobrar (' + pendientes().length + ')' }}</h2>
+          @if (resultados() !== null) {
+            <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" (click)="limpiarBusqueda()">Ver cola</button>
+          } @else {
+            <button type="button" class="ap-btn ap-btn-suave ap-btn-chico ap-btn-icono" aria-label="Actualizar" (click)="cargarCola()"><ap-icono nombre="actualizar" /></button>
+          }
+        </div>
+
+        @if (cargandoCola() && pendientes().length === 0 && resultados() === null) {
+          <div class="ap-cargando"><div class="ap-spinner"></div>Cargando…</div>
+        } @else if (errorCola() && resultados() === null) {
+          <div class="ap-card-cuerpo"><div class="ap-alerta error">{{ errorCola() }}</div></div>
+        } @else if (lista().length === 0) {
+          <div class="ap-vacio"><ap-icono nombre="caja_vacia" /><p>{{ resultados() !== null ? 'Sin resultados para esa búsqueda.' : 'No hay pedidos esperando cobro.' }}</p></div>
+        } @else {
+          <div class="cj-lista">
+            @for (t of lista(); track t.id) {
+              <button type="button" class="cj-item" [class.sel]="seleccionado()?.id === t.id" (click)="seleccionar(t)">
+                <div class="cj-item-top">
+                  <strong class="ap-mono">{{ t.id }}</strong>
+                  <span class="cj-item-monto">{{ soles(t.total) }}</span>
+                </div>
+                <small>{{ t.nombreFacturacion }}</small>
+                <small>{{ t.documentoTipo }} {{ t.documentoNumero }} · {{ cantidadItems(t) }} unid.</small>
+                <div style="margin-top: 7px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
+                  <span [class]="'ap-badge ' + claseEstado(t.estado)">{{ textoEstado(t.estado) }}</span>
+                  @if (t.fechaListoParaRecojo && t.estado === 'LISTO_PARA_RECOJO') { <span class="ap-chip">Listo {{ hace(t.fechaListoParaRecojo) }}</span> }
+                </div>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ============ Columna derecha: detalle y cobro ============ -->
+    <div>
+      @if (seleccionado(); as t) {
+        <div class="ap-card">
+          <div class="cj-detalle-cab">
+            <div>
+              <div class="cj-ticket-id ap-mono">{{ t.id }}</div>
+              <div style="margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap">
+                <span [class]="'ap-badge ' + claseEstado(t.estado)">{{ textoEstado(t.estado) }}</span>
+                <span class="ap-chip">{{ t.tipoComprobante === 'factura' ? 'Factura' : 'Boleta' }}</span>
+                @if (t.estado === 'LISTO_PARA_RECOJO') { <span class="ap-chip"><ap-icono nombre="reloj" /> {{ textoVence(t.fechaExpiracion) }}</span> }
+              </div>
+            </div>
+            <div style="text-align: right"><small style="color: var(--ap-muted); font-weight: 700">TOTAL A PAGAR</small><div class="cj-total-grande">{{ soles(t.total) }}</div></div>
+          </div>
+
+          <div class="cj-datos">
+            <div><small>Cliente</small><strong>{{ t.nombreFacturacion }}</strong></div>
+            <div><small>{{ t.documentoTipo }}</small><strong>{{ t.documentoNumero }}</strong></div>
+            <div><small>Contacto</small><strong>{{ t.telefono }}</strong></div>
+            <div><small>Quién recoge</small><strong>{{ t.personaAutorizada ? t.personaAutorizada.nombre + ' · DNI ' + t.personaAutorizada.dni : 'Titular de la compra' }}</strong></div>
+          </div>
+
+          <div class="ap-tabla-wrap">
+            <table class="ap-tabla">
+              <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">P. unit.</th><th class="num">Subtotal</th></tr></thead>
+              <tbody>
+                @for (p of t.productos; track p.id) {
+                  <tr><td>{{ p.nombre }}</td><td class="num"><strong>{{ p.cantidad }}</strong></td><td class="num">{{ soles(p.precio) }}</td><td class="num">{{ soles(p.subtotal) }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (t.estado === 'LISTO_PARA_RECOJO') {
+            <div class="cj-cobro">
+              <div>
+                <h3 style="font-size: 15px; margin-bottom: 12px">Método de pago</h3>
+                <div class="cj-metodos">
+                  <button type="button" class="cj-metodo" [class.sel]="metodo() === 'Efectivo'" (click)="elegirMetodo('Efectivo')"><ap-icono nombre="billete" /> Efectivo</button>
+                  <button type="button" class="cj-metodo" [class.sel]="metodo() === 'Tarjeta'" (click)="elegirMetodo('Tarjeta')"><ap-icono nombre="tarjeta" /> Tarjeta</button>
+                  <button type="button" class="cj-metodo" [class.sel]="metodo() === 'Yape/Plin'" (click)="elegirMetodo('Yape/Plin')"><ap-icono nombre="movil" /> Yape / Plin</button>
+                </div>
+
+                @if (metodo() === 'Efectivo') {
+                  <div class="ap-campo">
+                    <label for="cj-recibido">Efectivo recibido (S/)</label>
+                    <input id="cj-recibido" type="number" min="0" step="0.10" class="ap-input" style="font-size: 20px; font-weight: 800; padding: 12px"
+                           [ngModel]="recibido()" (ngModelChange)="recibido.set($event === '' || $event === null ? null : +$event)" />
+                  </div>
+                  <div class="cj-billetes">
+                    @for (s of sugerencias(); track s) {
+                      <button type="button" class="cj-billete" (click)="recibido.set(s)">{{ s === t.total ? 'Exacto' : soles(s) }}</button>
+                    }
+                  </div>
+                  @if (recibido() !== null) {
+                    <div class="cj-vuelto" [class.ok]="vuelto() >= 0" [class.falta]="vuelto() < 0">
+                      <span>{{ vuelto() >= 0 ? 'Vuelto a entregar' : 'Falta cobrar' }}</span>
+                      <strong>{{ soles(vuelto() >= 0 ? vuelto() : -vuelto()) }}</strong>
+                    </div>
+                  }
+                } @else {
+                  <div class="ap-campo">
+                    <label for="cj-op">N° de operación (opcional)</label>
+                    <input id="cj-op" class="ap-input" maxlength="50" placeholder="Código del voucher o de la transferencia" [ngModel]="operacion()" (ngModelChange)="operacion.set($event)" />
+                    <span class="ayuda">Se cobra el monto exacto: {{ soles(t.total) }}</span>
+                  </div>
+                }
+              </div>
+
+              <div>
+                <h3 style="font-size: 15px; margin-bottom: 12px">Resumen</h3>
+                <div class="ap-resumen-total">
+                  <div><span>Subtotal</span><span>{{ soles(t.subtotal) }}</span></div>
+                  <div><span>IGV (18%)</span><span>{{ soles(t.igv) }}</span></div>
+                  <div class="total"><span>Total</span><span>{{ soles(t.total) }}</span></div>
+                </div>
+                <button type="button" class="ap-btn ap-btn-exito ap-btn-grande" style="margin-top: 22px" [disabled]="!puedeCobrar()" (click)="cobrar()">
+                  <ap-icono nombre="check" /> {{ procesando() ? 'Procesando…' : 'Cobrar ' + soles(t.total) }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="ap-card-cuerpo"><div class="ap-alerta" [class.aviso]="t.estado === 'VIGENTE' || t.estado === 'PAGADO'" [class.error]="t.estado === 'CANCELADO' || t.estado === 'EXPIRADO'" [class.info]="t.estado === 'ENTREGADO'">{{ mensajeEstado(t) }}</div></div>
+          }
+        </div>
+      } @else {
+        <div class="ap-card cj-vacio-detalle">
+          <ap-icono nombre="caja" />
+          <h3 style="font-size: 18px; color: #334155; margin-bottom: 6px">Selecciona un pedido para cobrar</h3>
+          <p>Elige un ticket de la lista o búscalo por su número, DNI o RUC.</p>
+        </div>
+      }
+    </div>
+  </div>
+} @else {
+
+  <!-- ============================ HISTORIAL ============================ -->
+  <div class="ap-grid ap-grid-kpi">
+    <div class="ap-card ap-kpi"><div class="ap-kpi-icono verde"><ap-icono nombre="dinero" /></div><div><small>Total cobrado</small><strong>{{ soles(totalVentas()) }}</strong></div></div>
+    <div class="ap-card ap-kpi"><div class="ap-kpi-icono azul"><ap-icono nombre="ventas" /></div><div><small>Ventas</small><strong>{{ ventas().length }}</strong></div></div>
+  </div>
+
+  <div class="ap-card">
+    <div class="ap-filtros ap-no-imprimir">
+      <div class="ap-campo"><label for="cj-d">Desde</label><input id="cj-d" type="date" class="ap-input" [(ngModel)]="desde" /></div>
+      <div class="ap-campo"><label for="cj-h">Hasta</label><input id="cj-h" type="date" class="ap-input" [(ngModel)]="hasta" /></div>
+      <button type="button" class="ap-btn ap-btn-primario" (click)="cargarVentas()">Filtrar</button>
+      <div class="ap-acciones" style="margin-left: auto">
+        <button type="button" class="ap-btn ap-btn-suave" [disabled]="ventas().length === 0" (click)="exportar()"><ap-icono nombre="descargar" /> CSV</button>
+        <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+      </div>
+    </div>
+
+    @if (cargandoVentas()) {
+      <div class="ap-cargando"><div class="ap-spinner"></div>Cargando ventas…</div>
+    } @else if (ventas().length === 0) {
+      <div class="ap-vacio"><ap-icono nombre="ventas" /><p>No hay ventas en el rango seleccionado.</p></div>
+    } @else {
+      <div class="ap-tabla-wrap">
+        <table class="ap-tabla">
+          <thead><tr><th>Comprobante</th><th>Ticket</th><th>Fecha</th><th>Cliente</th><th>Método</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            @for (v of ventas(); track v.id) {
+              <tr class="clic" (click)="detalle.set(v)">
+                <td class="ap-mono">{{ v.comprobante }}</td><td class="ap-mono">{{ v.id }}</td><td>{{ fechaHora(v.fechaPago) }}</td>
+                <td>{{ v.nombreFacturacion }}<span class="ap-sub">{{ v.documentoTipo }} {{ v.documentoNumero }}</span></td>
+                <td>{{ v.metodoPago }}</td><td class="num"><strong>{{ soles(v.total) }}</strong></td>
+              </tr>
+            }
+          </tbody>
+          <tfoot><tr><td colspan="5">Total</td><td class="num">{{ soles(totalVentas()) }}</td></tr></tfoot>
+        </table>
+      </div>
+    }
+  </div>
+}
+
+<!-- ============ Comprobante de pago ============ -->
+<ap-modal [abierto]="voucher() !== null" titulo="Pago registrado" (cerrar)="voucher.set(null)">
+  @if (voucher(); as v) {
+    <div class="cj-voucher">
+      <div class="cj-voucher-check"><ap-icono nombre="check" /></div>
+      <h3 style="font-size: 20px">¡Cobro realizado!</h3>
+      <p style="color: var(--ap-muted); margin: 4px 0 18px">Entrega el comprobante al cliente. Almacén ya puede entregar el pedido.</p>
+    </div>
+    <div class="cj-voucher-fila"><span>Comprobante</span><strong class="ap-mono">{{ v.comprobante }}</strong></div>
+    <div class="cj-voucher-fila"><span>Ticket</span><strong class="ap-mono">{{ v.id }}</strong></div>
+    <div class="cj-voucher-fila"><span>Cliente</span><strong>{{ v.nombreFacturacion }}</strong></div>
+    <div class="cj-voucher-fila"><span>{{ v.documentoTipo }}</span><strong>{{ v.documentoNumero }}</strong></div>
+    <div class="cj-voucher-fila"><span>Método</span><strong>{{ v.metodoPago }}</strong></div>
+    @if (v.metodoPago === 'Efectivo') {
+      <div class="cj-voucher-fila"><span>Recibido</span><strong>{{ soles(v.montoRecibido ?? 0) }}</strong></div>
+      <div class="cj-voucher-fila"><span>Vuelto</span><strong>{{ soles(v.vueltoEntregado ?? 0) }}</strong></div>
+    }
+    <div class="cj-voucher-fila"><span>Total pagado</span><strong style="font-size: 20px; color: var(--ap-green)">{{ soles(v.total) }}</strong></div>
+    <div class="cj-voucher-fila"><span>Fecha</span><strong>{{ fechaHora(v.fechaPago) }}</strong></div>
+  }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+    <button type="button" class="ap-btn ap-btn-primario" (click)="voucher.set(null)">Listo, siguiente cliente</button>
+  </div>
+</ap-modal>
+
+<!-- ============ Detalle de venta (historial) ============ -->
+<ap-modal [abierto]="detalle() !== null" [titulo]="'Venta ' + (detalle()?.comprobante ?? '')" [ancho]="true" (cerrar)="detalle.set(null)">
+  @if (detalle(); as v) {
+    <div class="cj-datos" style="padding: 0 0 16px">
+      <div><small>Ticket</small><strong class="ap-mono">{{ v.id }}</strong></div>
+      <div><small>Cliente</small><strong>{{ v.nombreFacturacion }}</strong></div>
+      <div><small>{{ v.documentoTipo }}</small><strong>{{ v.documentoNumero }}</strong></div>
+      <div><small>Pagado</small><strong>{{ fechaHora(v.fechaPago) }}</strong></div>
+      <div><small>Método</small><strong>{{ v.metodoPago }}{{ v.numOperacion ? ' · Op. ' + v.numOperacion : '' }}</strong></div>
+      <div><small>Estado</small><span [class]="'ap-badge ' + claseEstado(v.estado)">{{ textoEstado(v.estado) }}</span></div>
+    </div>
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Subtotal</th></tr></thead>
+        <tbody>@for (p of v.productos; track p.id) { <tr><td>{{ p.nombre }}</td><td class="num">{{ p.cantidad }}</td><td class="num">{{ soles(p.subtotal) }}</td></tr> }</tbody>
+        <tfoot><tr><td colspan="2">Total</td><td class="num">{{ soles(v.total) }}</td></tr></tfoot>
+      </table>
+    </div>
+  }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+    <button type="button" class="ap-btn ap-btn-primario" (click)="detalle.set(null)">Cerrar</button>
+  </div>
+</ap-modal>

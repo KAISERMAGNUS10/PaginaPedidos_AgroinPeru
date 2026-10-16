@@ -1,0 +1,159 @@
+<ap-encabezado titulo="Dashboard" subtitulo="Resumen general del negocio en tiempo real">
+  <div class="ap-tabs" style="margin: 0">
+    <button type="button" class="ap-tab" [class.activo]="preset() === 'hoy'" (click)="elegir('hoy')">Hoy</button>
+    <button type="button" class="ap-tab" [class.activo]="preset() === '7'" (click)="elegir('7')">7 días</button>
+    <button type="button" class="ap-tab" [class.activo]="preset() === '30'" (click)="elegir('30')">30 días</button>
+  </div>
+  <input type="date" class="ap-input" style="width: auto" [(ngModel)]="desde" (ngModelChange)="cambioManual()" aria-label="Desde" />
+  <input type="date" class="ap-input" style="width: auto" [(ngModel)]="hasta" (ngModelChange)="cambioManual()" aria-label="Hasta" />
+  <button type="button" class="ap-btn ap-btn-suave" (click)="cargar()"><ap-icono nombre="actualizar" /> Actualizar</button>
+</ap-encabezado>
+
+@if (error()) {
+  <div class="ap-alerta error ap-mb">{{ error() }}</div>
+}
+
+@if (cargando() && !datos()) {
+  <div class="ap-card"><div class="ap-cargando"><div class="ap-spinner"></div>Cargando dashboard…</div></div>
+} @else if (datos(); as d) {
+
+  <div class="ap-grid ap-grid-kpi">
+    <div class="ap-card ap-kpi">
+      <div class="ap-kpi-icono verde"><ap-icono nombre="dinero" /></div>
+      <div><small>Total vendido</small><strong>{{ soles(d.kpis.totalVendido) }}</strong><em>{{ plural(d.kpis.ventas, 'venta cobrada', 'ventas cobradas') }}</em></div>
+    </div>
+    <div class="ap-card ap-kpi">
+      <div class="ap-kpi-icono azul"><ap-icono nombre="ventas" /></div>
+      <div><small>Pedidos generados</small><strong>{{ numero(d.kpis.pedidos) }}</strong><em>{{ plural(d.kpis.clientes, 'cliente distinto', 'clientes distintos') }}</em></div>
+    </div>
+    <div class="ap-card ap-kpi">
+      <div class="ap-kpi-icono violeta"><ap-icono nombre="camion" /></div>
+      <div><small>Pedidos entregados</small><strong>{{ numero(d.kpis.entregados) }}</strong><em>en el periodo</em></div>
+    </div>
+    <div class="ap-card ap-kpi">
+      <div class="ap-kpi-icono ambar"><ap-icono nombre="compras" /></div>
+      <div><small>Compras a proveedores</small><strong>{{ soles(d.compras.total) }}</strong><em>{{ plural(d.compras.cantidad, 'compra registrada', 'compras registradas') }}</em></div>
+    </div>
+    <div class="ap-card ap-kpi">
+      <div class="ap-kpi-icono rojo"><ap-icono nombre="alerta" /></div>
+      <div><small>Stock crítico</small><strong>{{ numero(d.inventario.bajoMinimo + d.inventario.sinStock) }}</strong><em>{{ numero(d.inventario.sinStock) }} sin stock</em></div>
+    </div>
+  </div>
+
+  <div class="ap-grid ap-grid-2 ap-mb">
+    <div class="ap-card">
+      <div class="ap-card-cab">
+        <h2>Ventas de los últimos 7 días</h2>
+        <span class="sub">Total: <strong>{{ soles(total7()) }}</strong></span>
+      </div>
+      <div class="ap-card-cuerpo"><ap-grafico-linea [datos]="grafico()" /></div>
+    </div>
+
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Estado de los pedidos</h2><span class="sub">Global</span></div>
+      <div class="ap-card-cuerpo" style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display:flex; justify-content: space-between; align-items:center"><span class="ap-badge ap-b-azul">En preparación</span><strong style="font-size:20px">{{ d.estados.vigente }}</strong></div>
+        <div style="display:flex; justify-content: space-between; align-items:center"><span class="ap-badge ap-b-ambar">Listo para recojo</span><strong style="font-size:20px">{{ d.estados.listo }}</strong></div>
+        <div style="display:flex; justify-content: space-between; align-items:center"><span class="ap-badge ap-b-verde">Pagado</span><strong style="font-size:20px">{{ d.estados.pagado }}</strong></div>
+        <div style="display:flex; justify-content: space-between; align-items:center"><span class="ap-badge ap-b-violeta">Entregado</span><strong style="font-size:20px">{{ d.estados.entregado }}</strong></div>
+        <div style="display:flex; justify-content: space-between; align-items:center"><span class="ap-badge ap-b-gris">Cancelado / Expirado</span><strong style="font-size:20px">{{ d.estados.inactivos }}</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ap-grid ap-grid-2e ap-mb">
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Actividad reciente</h2><span class="sub">Últimos movimientos</span></div>
+      @if (d.actividad.length === 0) {
+        <div class="ap-vacio">Aún no hay actividad registrada.</div>
+      } @else {
+        <ul class="ap-lista-act">
+          @for (a of d.actividad; track a.fecha + a.detalle + a.tipo) {
+            <li>
+              <span class="ap-punto" [style.background]="colorActividad(a.tipo)"></span>
+              <div><strong>{{ a.titulo }}</strong><span>{{ a.detalle }}</span></div>
+              <time>{{ hace(a.fecha) }}</time>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="ap-card">
+      <div class="ap-card-cab">
+        <h2>Productos con stock crítico</h2>
+        <a routerLink="/admin/inventario" class="ap-btn ap-btn-suave ap-btn-chico">Ver inventario</a>
+      </div>
+      @if (d.inventario.criticos.length === 0) {
+        <div class="ap-vacio">Todo el inventario está por encima del mínimo.</div>
+      } @else {
+        <div class="ap-tabla-wrap">
+          <table class="ap-tabla">
+            <thead><tr><th>Producto</th><th class="num">Stock</th><th class="num">Mínimo</th></tr></thead>
+            <tbody>
+              @for (p of d.inventario.criticos.slice(0, 8); track p.sku) {
+                <tr>
+                  <td>{{ p.nombre }}<span class="ap-sub ap-mono">{{ p.sku }}</span></td>
+                  <td class="num"><span class="ap-badge" [class.ap-b-rojo]="p.stock === 0" [class.ap-b-ambar]="p.stock > 0">{{ p.stock }}</span></td>
+                  <td class="num">{{ p.stockMinimo }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="ap-grid ap-grid-2 ap-mb">
+    <div class="ap-card">
+      <div class="ap-card-cab">
+        <h2>Últimas ventas</h2>
+        <a routerLink="/admin/ventas" class="ap-btn ap-btn-suave ap-btn-chico">Ver todas</a>
+      </div>
+      @if (ultimasVentas().length === 0) {
+        <div class="ap-vacio">No hay ventas en el periodo seleccionado.</div>
+      } @else {
+        <div class="ap-tabla-wrap">
+          <table class="ap-tabla">
+            <thead><tr><th>Ticket</th><th>Cliente</th><th>Método</th><th>Fecha</th><th class="num">Total</th></tr></thead>
+            <tbody>
+              @for (v of ultimasVentas(); track v.id) {
+                <tr>
+                  <td class="ap-mono">{{ v.id }}</td>
+                  <td>{{ v.nombreFacturacion }}<span class="ap-sub">{{ v.documentoTipo }} {{ v.documentoNumero }}</span></td>
+                  <td>{{ v.metodoPago }}</td>
+                  <td>{{ fechaHora(v.fechaPago) }}</td>
+                  <td class="num"><strong>{{ soles(v.total) }}</strong></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Mejores clientes</h2><span class="sub">Por valor de pedidos</span></div>
+      @if (topClientes().length === 0) {
+        <div class="ap-vacio">Sin clientes en el periodo.</div>
+      } @else {
+        <ul class="ap-lista-act">
+          @for (c of topClientes(); track c.documento + c.nombre) {
+            <li>
+              <span class="ap-avatar" style="width:34px;height:34px;font-size:13px">{{ c.nombre.charAt(0) }}</span>
+              <div><strong>{{ c.nombre }}</strong><span>{{ c.documento }} · {{ c.cantidadPedidos }} pedido(s)</span></div>
+              <time style="color:#0f172a; font-weight:800">{{ soles(c.valorPedidos) }}</time>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  <div style="text-align: right">
+    <button type="button" class="ap-btn ap-btn-peligro ap-btn-chico" (click)="reiniciar()">
+      <ap-icono nombre="papelera" /> Reiniciar datos de demostración
+    </button>
+  </div>
+}

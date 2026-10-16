@@ -1,0 +1,88 @@
+<header class="navbar-tottus">
+        <div class="header-left">
+            <a routerLink="/" class="logo-container">
+                <img src="img/logoagroperu.jpg" alt="Agroinperu" class="logo-drop">
+                <span class="logo-text">
+                    <span class="text-blue">AGROIN</span><span class="text-red">PERU</span> <span class="text-blue">S.A.C</span>
+                </span>
+            </a>
+            <button class="btn-menu-tottus" id="btn-main-menu">
+                <span>☰</span> Menú
+            </button>
+        </div>
+
+        <div class="header-search">
+            <input type="text" placeholder="Buscar en Agroinperu (conexiones, válvulas, mangueras...)" id="header-search-input">
+            <button type="button" class="btn-search" id="btn-header-search">🔍</button>
+        </div>
+
+        <div class="header-right">
+            <div class="user-session-container">
+                <div id="user-trigger" class="user-trigger">
+                    <div class="user-text-box">
+                        <span class="user-greeting-label">Hola,</span>
+                        <span class="user-name-label" id="user-display-name">Inicia sesión ⌄</span>
+                    </div>
+                </div>
+                
+                <div id="user-dropdown-menu" class="user-dropdown-tottus">
+                    <p id="dropdown-user-full">Cargando...</p>
+                    <a href="#">Mi cuenta</a>
+                    <a routerLink="/mis-pedidos">Mis Pedidos</a>
+                    <button id="btn-logout-tottus" class="btn-logout-tottus">Cerrar Sesión</button>
+                </div>
+            </div>
+
+            <a href="#" class="nav-extra-link">Mi cuenta</a>
+            <a routerLink="/mis-pedidos" class="nav-extra-link">Mis Pedidos</a>
+
+            <div class="notif-bell-container">
+                <a href="#" id="notif-bell" class="notif-bell-tottus">🔔<span class="notif-bell-dot" id="notif-bell-dot" style="display:none;"></span></a>
+                <div id="notif-dropdown" class="notif-dropdown"></div>
+            </div>
+
+            <a href="#" class="cart-tottus">
+                🛒 <span class="cart-badge" id="cart-counter">0</span>
+            </a>
+        </div>
+    </header>
+
+    <div id="menu-overlay" class="menu-overlay"></div>
+
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h2>Categorías</h2>
+            <button id="btn-close-menu" class="btn-close-menu">✖</button>
+        </div>
+        
+        <div class="side-menu-content">
+            <p class="side-filter-help">Filtra el catálogo por una o varias categorías.</p>
+            <div id="category-filter-list"></div>
+            <button type="button" class="btn-clear-filters" id="btn-clear-filters">Limpiar filtros</button>
+        </div>
+    </div>
+
+    <section class="hero">
+        <h1>Catálogo comercial de riego, mangueras y accesorios</h1>
+            </section>
+
+    <main class="container">
+        <section class="product-area">
+            <div class="catalog-toolbar">
+                <div>
+                    <h2>Catálogo de productos Agroinperu</h2>
+                    <p id="catalog-result-text" aria-live="polite">Mostrando todos los productos</p>
+                </div>
+                <button type="button" class="btn-reset-catalog" id="btn-reset-catalog" hidden>Ver todo el catálogo</button>
+            </div>
+
+            <div class="catalog-empty" id="catalog-empty" hidden>
+                <div class="catalog-empty-icon">🔎</div>
+                <h3>No encontramos productos</h3>
+                <p>Prueba con otra búsqueda o limpia los filtros seleccionados.</p>
+                <button type="button" id="btn-empty-reset">Mostrar todo</button>
+            </div>
+
+            <div class="product-grid" id="product-grid"></div>
+        </section>
+    </main>

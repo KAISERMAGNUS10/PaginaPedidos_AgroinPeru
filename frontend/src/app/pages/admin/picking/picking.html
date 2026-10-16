@@ -1,0 +1,218 @@
+<ap-encabezado titulo="Almacén" subtitulo="Prepara los pedidos y entrégalos cuando el cliente ya pagó">
+  <button type="button" class="ap-btn ap-btn-suave" (click)="cargar()"><ap-icono nombre="actualizar" /> Actualizar</button>
+</ap-encabezado>
+
+<div class="ap-tabs">
+  <button type="button" class="ap-tab" [class.activo]="pestana() === 'preparar'" (click)="pestana.set('preparar')"><ap-icono nombre="inventario" /> Por preparar <span class="cuenta">{{ pendientes().length }}</span></button>
+  <button type="button" class="ap-tab" [class.activo]="pestana() === 'entregar'" (click)="pestana.set('entregar')"><ap-icono nombre="camion" /> Por entregar <span class="cuenta">{{ porEntregar().length }}</span></button>
+  <button type="button" class="ap-tab" [class.activo]="pestana() === 'historial'" (click)="verHistorial()"><ap-icono nombre="reloj" /> Historial</button>
+</div>
+
+@if (error()) { <div class="ap-alerta error ap-mb">{{ error() }}</div> }
+
+@switch (pestana()) {
+
+  <!-- ===================== POR PREPARAR ===================== -->
+  @case ('preparar') {
+    @if (cargando() && pendientes().length === 0) {
+      <div class="ap-card"><div class="ap-cargando"><div class="ap-spinner"></div>Cargando pedidos…</div></div>
+    } @else if (pendientes().length === 0) {
+      <div class="ap-card"><div class="ap-vacio"><ap-icono nombre="check" /><p>No hay pedidos pendientes de preparar. ¡Todo al día!</p></div></div>
+    } @else {
+      <div class="pk-grid">
+        @for (t of pendientes(); track t.id) {
+          <article class="pk-card" [class.urgente]="urgente(t)">
+            <div class="pk-card-franja"></div>
+            <div class="pk-card-cuerpo">
+              <div class="pk-card-top">
+                <div>
+                  <strong class="ap-mono">{{ t.id }}</strong>
+                  <span class="ap-sub">{{ t.nombreFacturacion }}</span>
+                </div>
+                <span class="ap-chip">{{ t.productos.length }} ítem(s)</span>
+              </div>
+              <div class="pk-meta">
+                <span class="ap-chip"><ap-icono nombre="reloj" /> Pedido {{ hace(t.fechaEmision) }}</span>
+                <span class="ap-badge" [class.ap-b-rojo]="urgente(t)" [class.ap-b-azul]="!urgente(t)">{{ textoVence(t.fechaExpiracion) }}</span>
+              </div>
+              <ul class="pk-mini-lista">
+                @for (p of t.productos.slice(0, 3); track p.id) {
+                  <li><span>{{ p.nombre }}</span><strong>×{{ p.cantidad }}</strong></li>
+                }
+                @if (t.productos.length > 3) { <li><span style="color: var(--ap-muted)">+ {{ t.productos.length - 3 }} producto(s) más</span></li> }
+              </ul>
+              @if (avance(t) > 0) {
+                <div class="ap-chip" style="align-self: flex-start; background: #fef3c7; color: #92400e">En curso: {{ avance(t) }}/{{ t.productos.length }} separados</div>
+              }
+            </div>
+            <div class="pk-card-pie">
+              <button type="button" class="ap-btn ap-btn-primario" style="width: 100%" (click)="abrir(t)">{{ avance(t) > 0 ? 'Continuar preparación' : 'Preparar pedido' }}</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+
+  <!-- ===================== POR ENTREGAR ===================== -->
+  @case ('entregar') {
+    @if (cargando() && porEntregar().length === 0) {
+      <div class="ap-card"><div class="ap-cargando"><div class="ap-spinner"></div>Cargando…</div></div>
+    } @else if (porEntregar().length === 0) {
+      <div class="ap-card"><div class="ap-vacio"><ap-icono nombre="camion" /><p>No hay pedidos pagados esperando entrega.</p></div></div>
+    } @else {
+      <div class="pk-grid">
+        @for (t of porEntregar(); track t.id) {
+          <article class="pk-card ok">
+            <div class="pk-card-franja"></div>
+            <div class="pk-card-cuerpo">
+              <div class="pk-card-top">
+                <div><strong class="ap-mono">{{ t.id }}</strong><span class="ap-sub">{{ t.nombreFacturacion }}</span></div>
+                <span class="ap-badge ap-b-verde">Pagado</span>
+              </div>
+              <div class="pk-meta">
+                <span class="ap-chip">{{ cantidadItems(t) }} unidad(es)</span>
+                <span class="ap-chip">{{ t.metodoPago }} · {{ soles(t.total) }}</span>
+                <span class="ap-chip">Pagó {{ hace(t.fechaPago) }}</span>
+              </div>
+              @if (t.personaAutorizada; as p) {
+                <div class="pk-autorizado"><strong>Recoge una persona autorizada</strong><br />{{ p.nombre }} · DNI {{ p.dni }}</div>
+              } @else {
+                <div class="pk-autorizado titular"><strong>Recoge el titular</strong><br />{{ t.nombreFacturacion }} · {{ t.documentoTipo }} {{ t.documentoNumero }}</div>
+              }
+            </div>
+            <div class="pk-card-pie">
+              <button type="button" class="ap-btn ap-btn-exito" style="width: 100%" (click)="porConfirmar.set(t)"><ap-icono nombre="camion" /> Entregar pedido</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+
+  <!-- ===================== HISTORIAL ===================== -->
+  @case ('historial') {
+    <div class="ap-grid ap-grid-kpi">
+      <div class="ap-card ap-kpi"><div class="ap-kpi-icono violeta"><ap-icono nombre="camion" /></div><div><small>Pedidos entregados</small><strong>{{ historial()?.totalPedidos ?? 0 }}</strong></div></div>
+      <div class="ap-card ap-kpi"><div class="ap-kpi-icono azul"><ap-icono nombre="inventario" /></div><div><small>Unidades entregadas</small><strong>{{ historial()?.totalUnidades ?? 0 }}</strong></div></div>
+    </div>
+    <div class="ap-card">
+      <div class="ap-filtros ap-no-imprimir">
+        <div class="ap-campo"><label for="pk-d">Desde</label><input id="pk-d" type="date" class="ap-input" [(ngModel)]="desde" /></div>
+        <div class="ap-campo"><label for="pk-h">Hasta</label><input id="pk-h" type="date" class="ap-input" [(ngModel)]="hasta" /></div>
+        <button type="button" class="ap-btn ap-btn-primario" (click)="cargarHistorial()">Filtrar</button>
+        <div class="ap-acciones" style="margin-left: auto">
+          <button type="button" class="ap-btn ap-btn-suave" [disabled]="!historial()?.pedidos?.length" (click)="exportar()"><ap-icono nombre="descargar" /> CSV</button>
+          <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+        </div>
+      </div>
+      @if (cargandoHist()) {
+        <div class="ap-cargando"><div class="ap-spinner"></div>Cargando…</div>
+      } @else if (!historial() || historial()!.pedidos.length === 0) {
+        <div class="ap-vacio"><ap-icono nombre="reloj" /><p>No hay entregas en el rango seleccionado.</p></div>
+      } @else {
+        <div class="ap-tabla-wrap">
+          <table class="ap-tabla">
+            <thead><tr><th>Ticket</th><th>Cliente</th><th class="num">Unid.</th><th>Recogió</th><th>Entregado</th></tr></thead>
+            <tbody>
+              @for (t of historial()!.pedidos; track t.id) {
+                <tr class="clic" (click)="detalleHist.set(t)">
+                  <td class="ap-mono">{{ t.id }}</td>
+                  <td>{{ t.nombreFacturacion }}<span class="ap-sub">{{ t.documentoTipo }} {{ t.documentoNumero }}</span></td>
+                  <td class="num">{{ cantidadItems(t) }}</td>
+                  <td>{{ t.personaAutorizada ? t.personaAutorizada.nombre + ' (DNI ' + t.personaAutorizada.dni + ')' : 'Titular' }}</td>
+                  <td>{{ fechaHora(t.fechaEntrega) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- ============ Panel lateral de preparación ============ -->
+@if (abierto(); as t) {
+  <div class="pk-drawer-fondo" (click)="cerrar()"></div>
+  <aside class="pk-drawer" role="dialog" aria-label="Preparación del pedido">
+    <div class="pk-drawer-cab">
+      <div>
+        <h2 class="ap-mono">{{ t.id }}</h2>
+        <div style="color: var(--ap-muted); margin-top: 3px">{{ t.nombreFacturacion }} · {{ t.documentoTipo }} {{ t.documentoNumero }}</div>
+        <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap">
+          <span class="ap-chip">Pedido {{ hace(t.fechaEmision) }}</span>
+          <span class="ap-badge" [class.ap-b-rojo]="urgente(t)" [class.ap-b-azul]="!urgente(t)">{{ textoVence(t.fechaExpiracion) }}</span>
+        </div>
+      </div>
+      <button type="button" class="ap-modal-x" aria-label="Cerrar" (click)="cerrar()"><ap-icono nombre="x" /></button>
+    </div>
+
+    <div class="pk-progreso">
+      <div style="display: flex; justify-content: space-between; font-weight: 700">
+        <span>Productos separados</span><span>{{ hechos() }} de {{ total() }}</span>
+      </div>
+      <div class="pk-progreso-barra"><div class="pk-progreso-relleno" [style.width.%]="pct()"></div></div>
+    </div>
+
+    <div class="pk-lineas">
+      @for (p of t.productos; track p.id) {
+        <button type="button" class="pk-linea" [class.hecho]="marcados().has(p.id)" (click)="alternar(p.id)">
+          <span class="pk-check"><ap-icono nombre="check" /></span>
+          <img class="ap-miniatura" style="width: 52px; height: 52px" [src]="p.imagen || 'img/logoagroperu.jpg'" alt="" (error)="imagenRota($event)" />
+          <span class="pk-linea-info">
+            <strong>{{ p.nombre }}</strong>
+            <small class="ap-mono">{{ p.id }}</small>
+          </span>
+          <span class="pk-cantidad">×{{ p.cantidad }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="pk-drawer-pie">
+      <button type="button" class="ap-btn ap-btn-suave" (click)="marcarTodo()" [disabled]="completo()">Marcar todos como separados</button>
+      <button type="button" class="ap-btn ap-btn-exito ap-btn-grande" [disabled]="!completo() || procesando()" (click)="marcarListo()">
+        <ap-icono nombre="check" /> {{ procesando() ? 'Guardando…' : 'Marcar listo para recojo' }}
+      </button>
+      @if (!completo()) { <span style="text-align: center; font-size: 12.5px; color: var(--ap-muted)">Marca todos los productos para poder terminar el pedido.</span> }
+    </div>
+  </aside>
+}
+
+<!-- ============ Confirmar entrega ============ -->
+<ap-modal [abierto]="porConfirmar() !== null" titulo="Confirmar entrega" (cerrar)="porConfirmar.set(null)">
+  @if (porConfirmar(); as t) {
+    <div class="ap-alerta info" style="margin-bottom: 16px">Verifica el documento de quien recoge antes de entregar.</div>
+    @if (t.personaAutorizada; as p) {
+      <div class="pk-autorizado" style="margin-bottom: 14px"><strong>Persona autorizada</strong><br />{{ p.nombre }} · DNI {{ p.dni }}</div>
+    } @else {
+      <div class="pk-autorizado titular" style="margin-bottom: 14px"><strong>Titular de la compra</strong><br />{{ t.nombreFacturacion }} · {{ t.documentoTipo }} {{ t.documentoNumero }}</div>
+    }
+    <ul class="pk-mini-lista" style="border-top: 0; padding-top: 0">
+      @for (p of t.productos; track p.id) { <li><span>{{ p.nombre }}</span><strong>×{{ p.cantidad }}</strong></li> }
+    </ul>
+  }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="porConfirmar.set(null)">Cancelar</button>
+    <button type="button" class="ap-btn ap-btn-exito" [disabled]="procesando()" (click)="entregar()"><ap-icono nombre="camion" /> {{ procesando() ? 'Registrando…' : 'Confirmar entrega' }}</button>
+  </div>
+</ap-modal>
+
+<!-- ============ Detalle historial ============ -->
+<ap-modal [abierto]="detalleHist() !== null" [titulo]="'Pedido ' + (detalleHist()?.id ?? '')" (cerrar)="detalleHist.set(null)">
+  @if (detalleHist(); as t) {
+    <div class="cj-datos" style="padding: 0 0 14px">
+      <div><small>Cliente</small><strong>{{ t.nombreFacturacion }}</strong></div>
+      <div><small>{{ t.documentoTipo }}</small><strong>{{ t.documentoNumero }}</strong></div>
+      <div><small>Recogió</small><strong>{{ t.personaAutorizada ? t.personaAutorizada.nombre + ' · DNI ' + t.personaAutorizada.dni : 'Titular' }}</strong></div>
+      <div><small>Entregado</small><strong>{{ fechaHora(t.fechaEntrega) }}</strong></div>
+    </div>
+    <ul class="pk-mini-lista" style="border-top: 0; padding-top: 0">
+      @for (p of t.productos; track p.id) { <li><span>{{ p.nombre }}</span><strong>×{{ p.cantidad }}</strong></li> }
+    </ul>
+  }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+    <button type="button" class="ap-btn ap-btn-primario" (click)="detalleHist.set(null)">Cerrar</button>
+  </div>
+</ap-modal>

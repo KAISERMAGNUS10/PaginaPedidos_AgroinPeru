@@ -1,0 +1,104 @@
+<ap-encabezado titulo="Usuarios" subtitulo="Administra las cuentas del personal y de los clientes">
+  <button type="button" class="ap-btn ap-btn-primario" (click)="nuevo()"><ap-icono nombre="mas" /> Nuevo usuario</button>
+</ap-encabezado>
+
+<div class="ap-tabs">
+  <button type="button" class="ap-tab" [class.activo]="filtroRol() === ''" (click)="filtroRol.set('')">Todos <span class="cuenta">{{ conteo()[''] }}</span></button>
+  @for (r of roles; track r.v) {
+    <button type="button" class="ap-tab" [class.activo]="filtroRol() === r.v" (click)="filtroRol.set(r.v)">{{ r.t }} <span class="cuenta">{{ conteo()[r.v] }}</span></button>
+  }
+</div>
+
+@if (error()) { <div class="ap-alerta error ap-mb">{{ error() }}</div> }
+
+<div class="ap-card">
+  <div class="ap-filtros">
+    <div class="ap-buscador">
+      <ap-icono nombre="buscar" />
+      <input class="ap-input" type="search" placeholder="Buscar por nombre, correo o documento…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="ap-cargando"><div class="ap-spinner"></div>Cargando usuarios…</div>
+  } @else if (visibles().length === 0) {
+    <div class="ap-vacio"><ap-icono nombre="usuarios" /><p>No se encontraron usuarios.</p></div>
+  } @else {
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead>
+          <tr><th>Usuario</th><th>Rol</th><th>Documento</th><th>Teléfono</th><th>Estado</th><th>Último acceso</th><th class="num">Acciones</th></tr>
+        </thead>
+        <tbody>
+          @for (u of visibles(); track u.id) {
+            <tr>
+              <td>
+                <div class="ap-fila-prod">
+                  <span class="ap-avatar" style="width:38px;height:38px;font-size:14px">{{ inicial(u.Nombre) }}</span>
+                  <div><strong>{{ u.Nombre }} {{ u.Apellidos }}</strong><span class="ap-sub">{{ u.Correo }}</span></div>
+                </div>
+              </td>
+              <td><span [class]="'ap-badge ' + rolInfo(u.Rol).clase">{{ rolInfo(u.Rol).t }}</span></td>
+              <td>{{ u.DocumentoTipo }} <span class="ap-mono">{{ u.DocumentoNumero }}</span></td>
+              <td>{{ u.Telefono }}</td>
+              <td><span [class]="'ap-badge ' + claseEstado(u.estado)">{{ u.estado }}</span></td>
+              <td>{{ u.ultimoAcceso ? fechaHora(u.ultimoAcceso) : 'Nunca' }}</td>
+              <td class="num">
+                <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" (click)="editar(u)"><ap-icono nombre="editar" /> Editar</button>
+                @if (u.id !== miId()) {
+                  <button type="button" class="ap-btn ap-btn-chico" [class.ap-btn-peligro]="u.estado === 'ACTIVO'" [class.ap-btn-suave]="u.estado !== 'ACTIVO'"
+                          style="margin-left: 6px" (click)="alternarEstado(u)">
+                    {{ u.estado === 'ACTIVO' ? 'Bloquear' : 'Reactivar' }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<ap-modal [abierto]="modalAbierto()" [titulo]="editandoId() === null ? 'Nuevo usuario' : 'Editar usuario'" (cerrar)="modalAbierto.set(false)">
+  <div class="ap-form-grid">
+    <div class="ap-campo">
+      <label for="u-rol">Rol</label>
+      <select id="u-rol" class="ap-select" [(ngModel)]="form.rol">
+        @for (r of roles; track r.v) { <option [value]="r.v">{{ r.t }}</option> }
+      </select>
+    </div>
+    @if (editandoId() !== null) {
+      <div class="ap-campo">
+        <label for="u-estado">Estado</label>
+        <select id="u-estado" class="ap-select" [(ngModel)]="form.estado">
+          <option value="ACTIVO">Activo</option><option value="INACTIVO">Inactivo</option><option value="BLOQUEADO">Bloqueado</option>
+        </select>
+      </div>
+    }
+    <div class="ap-campo"><label for="u-nom">Nombres</label><input id="u-nom" class="ap-input" [(ngModel)]="form.nombre" /></div>
+    <div class="ap-campo"><label for="u-ape">Apellidos</label><input id="u-ape" class="ap-input" [(ngModel)]="form.apellidos" /></div>
+    <div class="ap-campo completo"><label for="u-mail">Correo electrónico</label><input id="u-mail" type="email" class="ap-input" [(ngModel)]="form.correo" /></div>
+    @if (editandoId() === null) {
+      <div class="ap-campo">
+        <label for="u-tdoc">Tipo de documento</label>
+        <select id="u-tdoc" class="ap-select" [(ngModel)]="form.documentoTipo"><option value="DNI">DNI</option><option value="CE">Carné de extranjería</option></select>
+      </div>
+      <div class="ap-campo"><label for="u-doc">N° de documento</label><input id="u-doc" class="ap-input" [(ngModel)]="form.documentoNumero" /></div>
+    }
+    <div class="ap-campo"><label for="u-cel">Celular</label><input id="u-cel" class="ap-input" maxlength="9" placeholder="9XXXXXXXX" [(ngModel)]="form.celular" /></div>
+    <div class="ap-campo">
+      <label for="u-pass">{{ editandoId() === null ? 'Contraseña' : 'Nueva contraseña (opcional)' }}</label>
+      <input id="u-pass" type="password" class="ap-input" autocomplete="new-password" [(ngModel)]="form.password" />
+      <span class="ayuda">Mín. 8 caracteres, con mayúscula, minúscula y número.</span>
+    </div>
+  </div>
+  @if (errorForm()) { <p class="ap-error" style="margin-top: 14px">{{ errorForm() }}</p> }
+
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="modalAbierto.set(false)">Cancelar</button>
+    <button type="button" class="ap-btn ap-btn-primario" [disabled]="guardando()" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : (editandoId() === null ? 'Crear usuario' : 'Guardar cambios') }}
+    </button>
+  </div>
+</ap-modal>

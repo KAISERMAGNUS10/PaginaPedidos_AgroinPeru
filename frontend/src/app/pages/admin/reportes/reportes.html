@@ -1,0 +1,142 @@
+<ap-encabezado titulo="Reportes" subtitulo="Analiza ventas, compras, productos, clientes e inventario">
+  <button type="button" class="ap-btn ap-btn-suave ap-no-imprimir" (click)="exportarVentas()" [disabled]="!r()"><ap-icono nombre="descargar" /> Ventas CSV</button>
+  <button type="button" class="ap-btn ap-btn-suave ap-no-imprimir" (click)="exportarProductos()" [disabled]="!r()"><ap-icono nombre="descargar" /> Productos CSV</button>
+  <button type="button" class="ap-btn ap-btn-primario ap-no-imprimir" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir / PDF</button>
+</ap-encabezado>
+
+<div class="ap-card ap-mb ap-no-imprimir">
+  <div class="ap-filtros" style="border-bottom: 0">
+    <div class="ap-tabs" style="margin: 0">
+      <button type="button" class="ap-tab" [class.activo]="preset() === '7'" (click)="elegir('7')">7 días</button>
+      <button type="button" class="ap-tab" [class.activo]="preset() === '30'" (click)="elegir('30')">30 días</button>
+      <button type="button" class="ap-tab" [class.activo]="preset() === '90'" (click)="elegir('90')">90 días</button>
+      <button type="button" class="ap-tab" [class.activo]="preset() === 'mes'" (click)="elegir('mes')">Este mes</button>
+    </div>
+    <div class="ap-campo"><label for="r-desde">Desde</label><input id="r-desde" type="date" class="ap-input" [(ngModel)]="desde" (ngModelChange)="manual()" /></div>
+    <div class="ap-campo"><label for="r-hasta">Hasta</label><input id="r-hasta" type="date" class="ap-input" [(ngModel)]="hasta" (ngModelChange)="manual()" /></div>
+  </div>
+</div>
+
+@if (error()) { <div class="ap-alerta error ap-mb">{{ error() }}</div> }
+
+@if (cargando() && !r()) {
+  <div class="ap-card"><div class="ap-cargando"><div class="ap-spinner"></div>Generando reporte…</div></div>
+} @else if (r(); as d) {
+
+  <p style="margin-bottom: 14px; color: #64748b">Periodo analizado: <strong>{{ d.rango.desde }}</strong> al <strong>{{ d.rango.hasta }}</strong></p>
+
+  <div class="ap-grid ap-grid-kpi">
+    <div class="ap-card ap-kpi"><div class="ap-kpi-icono verde"><ap-icono nombre="dinero" /></div><div><small>Ventas</small><strong>{{ soles(d.ventas.total) }}</strong><em>{{ plural(d.ventas.cantidad, 'venta', 'ventas') }} · promedio {{ soles(d.ventas.ticketPromedio) }}</em></div></div>
+    <div class="ap-card ap-kpi"><div class="ap-kpi-icono ambar"><ap-icono nombre="compras" /></div><div><small>Compras</small><strong>{{ soles(d.compras.total) }}</strong><em>{{ plural(d.compras.cantidad, 'compra', 'compras') }} a proveedores</em></div></div>
+    <div class="ap-card ap-kpi">
+      <div class="ap-kpi-icono" [class.azul]="balance() >= 0" [class.rojo]="balance() < 0"><ap-icono nombre="reportes" /></div>
+      <div><small>Ventas − Compras</small><strong>{{ soles(balance()) }}</strong><em>referencial del periodo (con IGV)</em></div>
+    </div>
+    <div class="ap-card ap-kpi"><div class="ap-kpi-icono violeta"><ap-icono nombre="inventario" /></div><div><small>Valor del inventario</small><strong>{{ solesCorto(d.inventario.valorVenta) }}</strong><em>{{ numero(d.inventario.unidades) }} unidades · a precio de venta</em></div></div>
+  </div>
+
+  <div class="ap-card ap-mb">
+    <div class="ap-card-cab"><h2>Ventas por día</h2><span class="sub">Total {{ soles(d.ventas.total) }}</span></div>
+    <div class="ap-card-cuerpo"><ap-grafico-linea [datos]="ventasDia()" /></div>
+  </div>
+
+  <div class="ap-grid ap-grid-2e ap-mb">
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Compras por día</h2><span class="sub">Total {{ soles(d.compras.total) }}</span></div>
+      <div class="ap-card-cuerpo"><ap-grafico-barras [datos]="comprasDia()" color="#f59e0b" /></div>
+    </div>
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Ventas por método de pago</h2></div>
+      <div class="ap-card-cuerpo"><ap-barras-lista [datos]="metodos()" /></div>
+      <div class="ap-card-cab" style="border-top: 1px solid var(--ap-border)"><h2>Boletas vs. facturas</h2></div>
+      <div class="ap-card-cuerpo"><ap-barras-lista [datos]="comprobantes()" /></div>
+    </div>
+  </div>
+
+  <div class="ap-grid ap-grid-2 ap-mb">
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Productos más vendidos</h2><span class="sub">Top 10 por unidades</span></div>
+      @if (d.productos.masVendidos.length === 0) {
+        <div class="ap-vacio">Sin ventas en el periodo.</div>
+      } @else {
+        <div class="ap-tabla-wrap">
+          <table class="ap-tabla">
+            <thead><tr><th>#</th><th>Producto</th><th>Categoría</th><th class="num">Unidades</th><th class="num">Total</th></tr></thead>
+            <tbody>
+              @for (p of d.productos.masVendidos; track p.sku; let i = $index) {
+                <tr><td>{{ i + 1 }}</td><td>{{ p.nombre }}<span class="ap-sub ap-mono">{{ p.sku }}</span></td><td>{{ p.categoria }}</td><td class="num"><strong>{{ numero(p.unidades) }}</strong></td><td class="num">{{ soles(p.total) }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Ventas por categoría</h2></div>
+      <div class="ap-card-cuerpo"><ap-barras-lista [datos]="categorias()" /></div>
+    </div>
+  </div>
+
+  <div class="ap-grid ap-grid-2e ap-mb">
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Mejores clientes</h2><span class="sub">Top 10 por monto</span></div>
+      @if (d.clientes.top.length === 0) {
+        <div class="ap-vacio">Sin clientes en el periodo.</div>
+      } @else {
+        <div class="ap-tabla-wrap">
+          <table class="ap-tabla">
+            <thead><tr><th>Cliente</th><th class="num">Pedidos</th><th class="num">Total</th></tr></thead>
+            <tbody>
+              @for (c of d.clientes.top; track c.documento + c.cliente) {
+                <tr><td>{{ c.cliente }}<span class="ap-sub">{{ c.documento }}</span></td><td class="num">{{ c.pedidos }}</td><td class="num"><strong>{{ soles(c.total) }}</strong></td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Compras por proveedor</h2></div>
+      @if (d.compras.porProveedor.length === 0) {
+        <div class="ap-vacio">Sin compras en el periodo.</div>
+      } @else {
+        <div class="ap-tabla-wrap">
+          <table class="ap-tabla">
+            <thead><tr><th>Proveedor</th><th class="num">Compras</th><th class="num">Total</th></tr></thead>
+            <tbody>
+              @for (p of d.compras.porProveedor; track p.proveedor) {
+                <tr><td>{{ p.proveedor }}</td><td class="num">{{ p.cantidad }}</td><td class="num"><strong>{{ soles(p.total) }}</strong></td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="ap-grid ap-grid-2e">
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Pedidos por estado</h2><span class="sub">Emitidos en el periodo</span></div>
+      <div class="ap-card-cuerpo"><ap-barras-lista [datos]="estados()" [formato]="cantFmt" /></div>
+    </div>
+    <div class="ap-card">
+      <div class="ap-card-cab"><h2>Estado del inventario</h2><span class="sub">{{ d.inventario.sinStock }} sin stock · {{ d.inventario.bajoMinimo }} bajo el mínimo</span></div>
+      @if (d.inventario.criticos.length === 0) {
+        <div class="ap-vacio">No hay productos críticos.</div>
+      } @else {
+        <div class="ap-tabla-wrap">
+          <table class="ap-tabla">
+            <thead><tr><th>Producto</th><th class="num">Stock</th><th class="num">Mínimo</th></tr></thead>
+            <tbody>
+              @for (p of d.inventario.criticos; track p.sku) {
+                <tr><td>{{ p.nombre }}<span class="ap-sub ap-mono">{{ p.sku }}</span></td>
+                  <td class="num"><span class="ap-badge" [class.ap-b-rojo]="p.stock === 0" [class.ap-b-ambar]="p.stock > 0">{{ p.stock }}</span></td>
+                  <td class="num">{{ p.stockMinimo }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+}

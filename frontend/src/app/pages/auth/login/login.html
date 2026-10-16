@@ -1,0 +1,65 @@
+<main class="split-layout">
+        <!-- Panel Izquierdo (Informativo) -->
+        <section class="left-panel">
+            <div class="logo">
+                <img src="img/logoagroperu.jpg" alt="Icono" class="logo-icon">
+                <div class="logo-text">
+                    <span class="text-cyan">AGROIN</span><span class="text-red">PERU</span> <span class="text-cyan">S.A.C</span>
+                </div>
+            </div>
+            
+            <div class="hero-content">
+                <h1>Tu proveedor de confianza para insumos agrícolas y sistemas de riego.</h1>
+                <p>Accede a fertilizantes certificados, tuberías y válvulas de primera línea. Todo en un solo lugar con despacho inmediato a nivel nacional.</p>
+                
+                <ul class="features">
+                    <li>
+                        <strong>✓ Insumos Certificados</strong>
+                        <span>Cumplimiento garantizado de estándares de calidad.</span>
+                    </li>
+                    <li>
+                        <strong>✓ Precios de Distribuidor</strong>
+                        <span>El mejor valor para tu campaña agrícola.</span>
+                    </li>
+                    <li>
+                        <strong>✓ Soporte Técnico Especializado</strong>
+                        <span>Asesoría gratuita con ingenieros agrónomos.</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <footer class="panel-footer">
+                © 2026 AGROINPERU S.A.C. Todos los derechos reservados.
+            </footer>
+        </section>
+
+        <!-- Panel Derecho (Formularios interactivos) -->
+        <section class="right-panel">
+            <div class="forms-container">
+                
+                <!-- SECCIÓN DE LOGIN -->
+                <div class="form-card" id="login-section">
+                    <h2>Iniciar Sesión</h2>
+                    <p class="subtitle">Ingresa a tu cuenta para gestionar tus pedidos</p>
+                    
+                    <form id="loginForm">
+                        <div class="input-group">
+                            <label>Correo electrónico</label>
+                            <input type="email" id="loginCorreo" name="email" placeholder="✉ cliente@agroinperu.com" autocomplete="email" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="loginPassword" name="password" placeholder="🔒 ••••••••••" autocomplete="current-password" required>
+                        </div>
+                        <div id="login-error" class="form-error" aria-live="polite"></div>
+                        <button type="submit" id="btnLogin" class="btn-primary">Iniciar Sesión</button>
+                    </form>
+                    
+                    <div class="divider">
+                        ¿No tienes una cuenta? <a routerLink="/registro" style="color: #00AEEF; font-weight: bold; text-decoration: none;">Regístrate aquí</a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>

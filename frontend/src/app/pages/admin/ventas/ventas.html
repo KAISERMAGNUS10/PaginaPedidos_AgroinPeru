@@ -1,0 +1,105 @@
+<ap-encabezado titulo="Ventas" subtitulo="Pedidos cobrados en caja">
+  <button type="button" class="ap-btn ap-btn-suave" (click)="exportar()" [disabled]="visibles().length === 0"><ap-icono nombre="descargar" /> Exportar CSV</button>
+  <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+</ap-encabezado>
+
+<div class="ap-grid ap-grid-kpi">
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono verde"><ap-icono nombre="dinero" /></div><div><small>Total vendido</small><strong>{{ soles(total()) }}</strong></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono azul"><ap-icono nombre="ventas" /></div><div><small>N° de ventas</small><strong>{{ visibles().length }}</strong></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono violeta"><ap-icono nombre="reportes" /></div><div><small>Ticket promedio</small><strong>{{ soles(promedio()) }}</strong></div></div>
+  <div class="ap-card ap-kpi"><div class="ap-kpi-icono ambar"><ap-icono nombre="inventario" /></div><div><small>Unidades vendidas</small><strong>{{ unidades() }}</strong></div></div>
+</div>
+
+@if (error()) { <div class="ap-alerta error ap-mb">{{ error() }}</div> }
+
+<div class="ap-card">
+  <div class="ap-filtros ap-no-imprimir">
+    <div class="ap-campo"><label for="v-desde">Desde</label><input id="v-desde" type="date" class="ap-input" [(ngModel)]="desde" /></div>
+    <div class="ap-campo"><label for="v-hasta">Hasta</label><input id="v-hasta" type="date" class="ap-input" [(ngModel)]="hasta" /></div>
+    <button type="button" class="ap-btn ap-btn-primario" (click)="cargar()">Filtrar</button>
+    <div class="ap-buscador" style="margin-left: auto">
+      <ap-icono nombre="buscar" />
+      <input class="ap-input" type="search" placeholder="Ticket, comprobante, cliente o documento…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+    </div>
+    <div class="ap-campo">
+      <select class="ap-select" aria-label="Método de pago" [ngModel]="metodo()" (ngModelChange)="metodo.set($event)">
+        <option value="">Todos los métodos</option>
+        @for (m of metodos(); track m) { <option [value]="m">{{ m }}</option> }
+      </select>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="ap-cargando"><div class="ap-spinner"></div>Cargando ventas…</div>
+  } @else if (visibles().length === 0) {
+    <div class="ap-vacio"><ap-icono nombre="ventas" /><p>No hay ventas en el rango de fechas seleccionado.</p></div>
+  } @else {
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead><tr><th>Comprobante</th><th>Ticket</th><th>Fecha de pago</th><th>Cliente</th><th>Método</th><th>Estado</th><th class="num">Total</th></tr></thead>
+        <tbody>
+          @for (v of visibles(); track v.id) {
+            <tr class="clic" (click)="detalle.set(v)">
+              <td><span class="ap-mono">{{ v.comprobante }}</span><span class="ap-sub">{{ v.tipoComprobante === 'factura' ? 'Factura' : 'Boleta' }}</span></td>
+              <td class="ap-mono">{{ v.id }}</td>
+              <td>{{ fechaHora(v.fechaPago) }}</td>
+              <td>{{ v.nombreFacturacion }}<span class="ap-sub">{{ v.documentoTipo }} {{ v.documentoNumero }}</span></td>
+              <td>{{ v.metodoPago }}</td>
+              <td><span [class]="'ap-badge ' + claseEstado(v.estado)">{{ textoEstado(v.estado) }}</span></td>
+              <td class="num"><strong>{{ soles(v.total) }}</strong></td>
+            </tr>
+          }
+        </tbody>
+        <tfoot><tr><td colspan="6">Total del periodo ({{ visibles().length }} ventas)</td><td class="num">{{ soles(total()) }}</td></tr></tfoot>
+      </table>
+    </div>
+  }
+</div>
+
+<ap-modal [abierto]="detalle() !== null" [titulo]="'Venta ' + (detalle()?.comprobante ?? '')" [ancho]="true" (cerrar)="detalle.set(null)">
+  @if (detalle(); as v) {
+    <div class="cj-datos" style="padding: 0 0 18px">
+      <div><small>Ticket</small><strong class="ap-mono">{{ v.id }}</strong></div>
+      <div><small>Comprobante</small><strong>{{ v.tipoComprobante === 'factura' ? 'Factura' : 'Boleta' }} {{ v.comprobante }}</strong></div>
+      <div><small>Cliente</small><strong>{{ v.nombreFacturacion }}</strong></div>
+      <div><small>{{ v.documentoTipo }}</small><strong>{{ v.documentoNumero }}</strong></div>
+      <div><small>Correo / Teléfono</small><strong>{{ v.correo }} · {{ v.telefono }}</strong></div>
+      <div><small>Estado</small><span [class]="'ap-badge ' + claseEstado(v.estado)">{{ textoEstado(v.estado) }}</span></div>
+      <div><small>Pedido emitido</small><strong>{{ fechaHora(v.fechaEmision) }}</strong></div>
+      <div><small>Pagado</small><strong>{{ fechaHora(v.fechaPago) }}</strong></div>
+      <div><small>Entregado</small><strong>{{ v.fechaEntrega ? fechaHora(v.fechaEntrega) : 'Pendiente' }}</strong></div>
+      <div><small>Recoge</small><strong>{{ v.personaAutorizada ? v.personaAutorizada.nombre + ' (DNI ' + v.personaAutorizada.dni + ')' : 'Titular de la compra' }}</strong></div>
+    </div>
+
+    <div class="ap-tabla-wrap">
+      <table class="ap-tabla">
+        <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">P. unit.</th><th class="num">Subtotal</th></tr></thead>
+        <tbody>
+          @for (i of v.productos; track i.id) {
+            <tr><td>{{ i.nombre }}<span class="ap-sub ap-mono">{{ i.id }}</span></td><td class="num">{{ i.cantidad }}</td><td class="num">{{ soles(i.precio) }}</td><td class="num">{{ soles(i.subtotal) }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px">
+      <div class="ap-resumen-total">
+        <div><span>Método de pago</span><strong>{{ v.metodoPago }}</strong></div>
+        @if (v.metodoPago === 'Efectivo') {
+          <div><span>Recibido</span><strong>{{ soles(v.montoRecibido) }}</strong></div>
+          <div><span>Vuelto</span><strong>{{ soles(v.vueltoEntregado) }}</strong></div>
+        }
+        @if (v.numOperacion) { <div><span>N° de operación</span><strong>{{ v.numOperacion }}</strong></div> }
+      </div>
+      <div class="ap-resumen-total">
+        <div><span>Subtotal</span><span>{{ soles(v.subtotal) }}</span></div>
+        <div><span>IGV (18%)</span><span>{{ soles(v.igv) }}</span></div>
+        <div class="total"><span>Total</span><span>{{ soles(v.total) }}</span></div>
+      </div>
+    </div>
+  }
+  <div pie>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+    <button type="button" class="ap-btn ap-btn-primario" (click)="detalle.set(null)">Cerrar</button>
+  </div>
+</ap-modal>
