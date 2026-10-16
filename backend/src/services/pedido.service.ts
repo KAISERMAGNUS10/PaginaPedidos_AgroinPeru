@@ -1,4 +1,4 @@
-import { conTransaccion } from '../config/database';
+import { conTransaccion, PG_VALOR_DUPLICADO } from '../config/database';
 import { CheckoutDto } from '../models/pedido.model';
 import { CarritoRepository } from '../repositories/carrito.repository';
 import { PedidoRepository } from '../repositories/pedido.repository';
@@ -174,7 +174,7 @@ export class PedidoService {
         break;
       } catch (error: any) {
         // Dos pedidos simultáneos pueden generar el mismo correlativo: se reintenta.
-        if (error?.code === 'ER_DUP_ENTRY' && intento < 4) continue;
+        if (error?.code === PG_VALOR_DUPLICADO && intento < 4) continue;
         throw error;
       }
     }

@@ -3,7 +3,10 @@
  * Los filtros "desde / hasta" que envía el frontend (YYYY-MM-DD) se
  * interpretan como días en hora de Perú.
  */
-const OFFSET = process.env.TZ_OFFSET ?? '-05:00';
+const OFFSET = '-05:00';
+
+/** Zona horaria de PostgreSQL para agrupar por día calendario de Perú. */
+export const ZONA_HORARIA = 'America/Lima';
 
 export function aIso(valor: Date | string | null | undefined): string | null {
   if (!valor) return null;
@@ -21,10 +24,6 @@ export function finDelDia(yyyyMmDd?: string): Date | null {
   if (!yyyyMmDd || !/^\d{4}-\d{2}-\d{2}$/.test(yyyyMmDd)) return null;
   const d = new Date(`${yyyyMmDd}T23:59:59.999${OFFSET}`);
   return Number.isNaN(d.getTime()) ? null : d;
-}
-
-export function offsetZona(): string {
-  return OFFSET;
 }
 
 /** YYYY-MM-DD del día de hoy (hora de Perú) menos N días. */

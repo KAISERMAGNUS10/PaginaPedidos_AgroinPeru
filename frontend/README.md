@@ -1,7 +1,7 @@
 # AGROINPERU · Frontend (Angular 22)
 
 Tienda web con recojo en tienda + panel interno (Administrador, Caja y Almacén).
-Ya está **conectado al backend** (`../backend`): no usa datos guardados en el navegador, todo viene de la API y de MySQL.
+Ya está **conectado al backend** (`../backend`): no usa datos guardados en el navegador, todo viene de la API y de PostgreSQL (Supabase).
 
 ## Cómo ejecutarlo
 

@@ -1,15 +1,14 @@
-import { RowDataPacket } from 'mysql2/promise';
-
-import { pool } from '../config/database';
-import { offsetZona } from '../utils/fechas';
+import { Fila, pool } from '../config/database';
+import { ZONA_HORARIA } from '../utils/fechas';
 
 type Rango = [Date, Date];
 
-const dia = (campo: string) => `DATE_FORMAT(CONVERT_TZ(${campo}, '+00:00', '${offsetZona()}'), '%Y-%m-%d')`;
+/** Día calendario (YYYY-MM-DD) en hora de Perú. */
+const dia = (campo: string) => `TO_CHAR(${campo} AT TIME ZONE '${ZONA_HORARIA}', 'YYYY-MM-DD')`;
 
 export class ReporteRepository {
   async ventasPorDia([d, h]: Rango) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT ${dia('fecha_pago')} AS dia, COUNT(*) AS cantidad, SUM(monto_total) AS total
          FROM tbl_pagos WHERE estado = 'COMPLETADO' AND fecha_pago BETWEEN ? AND ?
         GROUP BY dia ORDER BY dia`,
@@ -19,7 +18,7 @@ export class ReporteRepository {
   }
 
   async ventasPorMetodo([d, h]: Rango) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT metodo_pago AS metodo, COUNT(*) AS cantidad, SUM(monto_total) AS total
          FROM tbl_pagos WHERE estado = 'COMPLETADO' AND fecha_pago BETWEEN ? AND ?
         GROUP BY metodo_pago ORDER BY total DESC`,
@@ -29,7 +28,7 @@ export class ReporteRepository {
   }
 
   async ventasPorComprobante([d, h]: Rango) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT p.tipo_comprobante AS tipo, COUNT(*) AS cantidad, SUM(g.monto_total) AS total
          FROM tbl_pagos g JOIN tbl_pedidos p ON p.id_pedido = g.id_pedido
         WHERE g.estado = 'COMPLETADO' AND g.fecha_pago BETWEEN ? AND ?
@@ -40,7 +39,7 @@ export class ReporteRepository {
   }
 
   async topProductos([d, h]: Rango, limite = 10) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT pr.codigo_sku AS sku, pr.nombre_completo AS nombre, c.nombre_categoria AS categoria,
               SUM(dp.cantidad) AS unidades, SUM(dp.subtotal) AS total
          FROM tbl_pagos g
@@ -57,7 +56,7 @@ export class ReporteRepository {
   }
 
   async ventasPorCategoria([d, h]: Rango) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT c.nombre_categoria AS categoria, SUM(dp.cantidad) AS unidades, SUM(dp.subtotal) AS total
          FROM tbl_pagos g
          JOIN tbl_detalle_pedidos dp ON dp.id_pedido = g.id_pedido
@@ -71,7 +70,7 @@ export class ReporteRepository {
   }
 
   async topClientes([d, h]: Rango, limite = 10) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT p.razon_social_nombre AS cliente, p.numero_documento_comprobante AS documento,
               COUNT(*) AS pedidos, SUM(g.monto_total) AS total
          FROM tbl_pagos g JOIN tbl_pedidos p ON p.id_pedido = g.id_pedido
@@ -84,7 +83,7 @@ export class ReporteRepository {
   }
 
   async pedidosPorEstado([d, h]: Rango) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT estado, COUNT(*) AS n FROM tbl_pedidos WHERE fecha_emision BETWEEN ? AND ? GROUP BY estado`,
       [d, h]
     );
@@ -94,7 +93,7 @@ export class ReporteRepository {
   }
 
   async comprasPorDia([d, h]: Rango) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT ${dia('fecha_compra')} AS dia, COUNT(*) AS cantidad, SUM(total) AS total
          FROM tbl_compras WHERE estado = 'REGISTRADA' AND fecha_compra BETWEEN ? AND ?
         GROUP BY dia ORDER BY dia`,
@@ -104,7 +103,7 @@ export class ReporteRepository {
   }
 
   async comprasPorProveedor([d, h]: Rango, limite = 10) {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT proveedor_nombre AS proveedor, COUNT(*) AS cantidad, SUM(total) AS total
          FROM tbl_compras WHERE estado = 'REGISTRADA' AND fecha_compra BETWEEN ? AND ?
         GROUP BY proveedor_nombre ORDER BY total DESC LIMIT ?`,
@@ -114,7 +113,7 @@ export class ReporteRepository {
   }
 
   async inventario() {
-    const [r] = await pool.query<RowDataPacket[]>(
+    const [r] = await pool.query<Fila[]>(
       `SELECT COUNT(*) AS productos,
               COALESCE(SUM(stock_tienda + stock_almacen), 0) AS unidades,
               COALESCE(SUM((stock_tienda + stock_almacen) * precio), 0) AS valor,
@@ -123,7 +122,7 @@ export class ReporteRepository {
                                  AND stock_tienda + stock_almacen <= stock_minimo THEN 1 ELSE 0 END), 0) AS bajo_minimo
          FROM tbl_productos WHERE estado <> 'DESCONTINUADO'`
     );
-    const [bajos] = await pool.query<RowDataPacket[]>(
+    const [bajos] = await pool.query<Fila[]>(
       `SELECT codigo_sku AS sku, nombre_completo AS nombre, stock_tienda, stock_almacen, stock_minimo
          FROM tbl_productos
         WHERE estado <> 'DESCONTINUADO' AND stock_tienda + stock_almacen <= stock_minimo

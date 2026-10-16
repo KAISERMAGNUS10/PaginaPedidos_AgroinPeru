@@ -1,6 +1,4 @@
-import { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-
-import { pool } from '../config/database';
+import { Conexion, Fila, pool, ResultadoEscritura } from '../config/database';
 import { EstadoPedido, Ticket, TicketItem } from '../models/pedido.model';
 import { aIso } from '../utils/fechas';
 
@@ -8,7 +6,7 @@ import { aIso } from '../utils/fechas';
 /* Tipos de filas                                                      */
 /* ------------------------------------------------------------------ */
 
-export interface PedidoBaseRow extends RowDataPacket {
+export interface PedidoBaseRow extends Fila {
   id_pedido: number;
   id_usuario: number;
   id_tienda_recojo: number;
@@ -47,7 +45,7 @@ interface TicketRow extends PedidoBaseRow {
   fecha_entrega: Date | null;
 }
 
-interface DetalleRow extends RowDataPacket {
+interface DetalleRow extends Fila {
   id_pedido: number;
   cantidad: number;
   precio_unitario: number;
@@ -186,7 +184,7 @@ export class PedidoRepository {
          FROM tbl_detalle_pedidos d
          JOIN tbl_productos pr ON pr.id_producto = d.id_producto
          JOIN tbl_categorias c ON c.id_categoria = pr.id_categoria
-        WHERE d.id_pedido IN (?)
+        WHERE d.id_pedido = ANY(?)
         ORDER BY d.id_detalle ASC`,
       [ids]
     );
@@ -220,7 +218,7 @@ export class PedidoRepository {
   }
 
   async idPorCodigo(codigo: string): Promise<number | null> {
-    const [rows] = await pool.query<RowDataPacket[]>(
+    const [rows] = await pool.query<Fila[]>(
       'SELECT id_pedido FROM tbl_pedidos WHERE codigo_ticket = ? LIMIT 1',
       [codigo]
     );
@@ -228,7 +226,7 @@ export class PedidoRepository {
   }
 
   async contarPorEstado(): Promise<Record<string, number>> {
-    const [rows] = await pool.query<RowDataPacket[]>(
+    const [rows] = await pool.query<Fila[]>(
       'SELECT estado, COUNT(*) AS n FROM tbl_pedidos GROUP BY estado'
     );
     const resultado: Record<string, number> = {};
@@ -238,7 +236,7 @@ export class PedidoRepository {
 
   /* -------------------------- bloqueos / escritura ---------------- */
 
-  async bloquearPorCodigo(conexion: PoolConnection, codigo: string): Promise<PedidoBaseRow | null> {
+  async bloquearPorCodigo(conexion: Conexion, codigo: string): Promise<PedidoBaseRow | null> {
     const [rows] = await conexion.query<PedidoBaseRow[]>(
       'SELECT * FROM tbl_pedidos WHERE codigo_ticket = ? LIMIT 1 FOR UPDATE',
       [codigo]
@@ -247,15 +245,15 @@ export class PedidoRepository {
   }
 
   async idsVencidos(): Promise<number[]> {
-    const [rows] = await pool.query<RowDataPacket[]>(
+    const [rows] = await pool.query<Fila[]>(
       `SELECT id_pedido FROM tbl_pedidos
         WHERE estado IN ('VIGENTE', 'LISTO_PARA_RECOJO', 'EN_PREPARACION')
-          AND fecha_expiracion < UTC_TIMESTAMP()`
+          AND fecha_expiracion < NOW()`
     );
     return rows.map(r => Number(r.id_pedido));
   }
 
-  async bloquearPorId(conexion: PoolConnection, id: number): Promise<PedidoBaseRow | null> {
+  async bloquearPorId(conexion: Conexion, id: number): Promise<PedidoBaseRow | null> {
     const [rows] = await conexion.query<PedidoBaseRow[]>(
       'SELECT * FROM tbl_pedidos WHERE id_pedido = ? LIMIT 1 FOR UPDATE',
       [id]
@@ -264,12 +262,12 @@ export class PedidoRepository {
   }
 
   /** TK-2026-00001, TK-2026-00002, ... (correlativo por año). */
-  async siguienteCodigo(conexion: PoolConnection): Promise<string> {
+  async siguienteCodigo(conexion: Conexion): Promise<string> {
     const anio = new Date().getUTCFullYear();
     const prefijo = `TK-${anio}-`;
 
-    const [rows] = await conexion.query<RowDataPacket[]>(
-      `SELECT COALESCE(MAX(CAST(SUBSTRING(codigo_ticket, ?) AS UNSIGNED)), 0) AS ultimo
+    const [rows] = await conexion.query<Fila[]>(
+      `SELECT COALESCE(MAX(CAST(SUBSTRING(codigo_ticket FROM ?::int) AS INTEGER)), 0) AS ultimo
          FROM tbl_pedidos
         WHERE codigo_ticket LIKE ?`,
       [prefijo.length + 1, `${prefijo}%`]
@@ -280,7 +278,7 @@ export class PedidoRepository {
   }
 
   async crear(
-    conexion: PoolConnection,
+    conexion: Conexion,
     datos: {
       codigo_ticket: string;
       id_usuario: number;
@@ -298,12 +296,13 @@ export class PedidoRepository {
     },
     lineas: LineaPedidoNueva[]
   ): Promise<number> {
-    const [res] = await conexion.execute<ResultSetHeader>(
+    const [res] = await conexion.execute<ResultadoEscritura>(
       `INSERT INTO tbl_pedidos
          (codigo_ticket, id_usuario, id_tienda_recojo, tipo_comprobante,
           razon_social_nombre, tipo_documento_comprobante, numero_documento_comprobante,
           email_contacto, telefono_contacto, subtotal, igv, total, estado, fecha_expiracion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'VIGENTE', ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'VIGENTE', ?)
+       RETURNING id_pedido AS "insertId"`,
       [
         datos.codigo_ticket,
         datos.id_usuario,
@@ -341,14 +340,14 @@ export class PedidoRepository {
   }
 
   async cambiarEstado(
-    conexion: PoolConnection,
+    conexion: Conexion,
     idPedido: number,
     estado: EstadoPedido,
     cancelado = false
   ): Promise<void> {
     await conexion.execute(
       `UPDATE tbl_pedidos
-          SET estado = ?${cancelado ? ', fecha_cancelacion = UTC_TIMESTAMP()' : ''}
+          SET estado = ?${cancelado ? ', fecha_cancelacion = NOW()' : ''}
         WHERE id_pedido = ?`,
       [estado, idPedido]
     );
@@ -367,10 +366,10 @@ export class PedidoRepository {
   }
 
   async lineas(
-    conexion: PoolConnection,
+    conexion: Conexion,
     idPedido: number
   ): Promise<Array<{ id_producto: number; cantidad: number }>> {
-    const [rows] = await conexion.query<RowDataPacket[]>(
+    const [rows] = await conexion.query<Fila[]>(
       'SELECT id_producto, cantidad FROM tbl_detalle_pedidos WHERE id_pedido = ?',
       [idPedido]
     );

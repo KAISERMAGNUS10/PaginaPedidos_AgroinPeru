@@ -1,4 +1,4 @@
-import { conTransaccion } from '../config/database';
+import { conTransaccion, contiene, PG_VALOR_DUPLICADO } from '../config/database';
 import { CompraRepository, CompraRow } from '../repositories/compra.repository';
 import { InventarioRepository, Ubicacion } from '../repositories/inventario.repository';
 import { ProductoRepository } from '../repositories/producto.repository';
@@ -42,7 +42,9 @@ export class CompraService {
     if (h) { where.push('c.fecha_compra <= ?'); params.push(h); }
     if (q.estado === 'REGISTRADA' || q.estado === 'ANULADA') { where.push('c.estado = ?'); params.push(q.estado); }
     if (q.q) {
-      where.push('(c.codigo_compra LIKE ? OR c.proveedor_nombre LIKE ? OR c.proveedor_ruc LIKE ? OR c.numero_comprobante LIKE ?)');
+      where.push(
+        `(${contiene('c.codigo_compra')} OR ${contiene('c.proveedor_nombre')} OR ${contiene('c.proveedor_ruc')} OR ${contiene('c.numero_comprobante')})`
+      );
       const like = `%${q.q}%`;
       params.push(like, like, like, like);
     }
@@ -160,7 +162,7 @@ export class CompraService {
         });
         break;
       } catch (error: any) {
-        if (error?.code === 'ER_DUP_ENTRY' && intento < 4) continue;
+        if (error?.code === PG_VALOR_DUPLICADO && intento < 4) continue;
         throw error;
       }
     }

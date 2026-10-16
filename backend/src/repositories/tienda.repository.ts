@@ -1,8 +1,6 @@
-import { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { Conexion, Fila, pool } from '../config/database';
 
-import { pool } from '../config/database';
-
-export interface TiendaRow extends RowDataPacket {
+export interface TiendaRow extends Fila {
   id_tienda: number;
   codigo_tienda: string;
   nombre_tienda: string;
@@ -24,7 +22,7 @@ export class TiendaRepository {
     return rows;
   }
 
-  async activaPorId(conexion: PoolConnection, id?: number): Promise<TiendaRow | null> {
+  async activaPorId(conexion: Conexion, id?: number): Promise<TiendaRow | null> {
     const [rows] = await conexion.query<TiendaRow[]>(
       `SELECT * FROM tbl_tiendas_recojo
         WHERE estado = 'ACTIVA' ${id ? 'AND id_tienda = ?' : ''}

@@ -1,9 +1,7 @@
-import { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-
-import { pool } from '../config/database';
+import { Conexion, contiene, Fila, pool, ResultadoEscritura } from '../config/database';
 import { ProductoDto } from '../models/producto.model';
 
-export interface ProductoRow extends RowDataPacket {
+export interface ProductoRow extends Fila {
   id_producto: number;
   codigo_sku: string;
   nombre: string;
@@ -65,7 +63,7 @@ export class ProductoRepository {
     }
 
     if (filtros.q) {
-      where.push('(p.nombre_completo LIKE ? OR p.codigo_sku LIKE ? OR c.nombre_categoria LIKE ?)');
+      where.push(`(${contiene('p.nombre_completo')} OR ${contiene('p.codigo_sku')} OR ${contiene('c.nombre_categoria')})`);
       const like = `%${filtros.q}%`;
       params.push(like, like, like);
     }
@@ -88,33 +86,33 @@ export class ProductoRepository {
   async porSkus(skus: string[]): Promise<ProductoRow[]> {
     if (skus.length === 0) return [];
     const [rows] = await pool.query<ProductoRow[]>(
-      `${SELECT_PRODUCTO} WHERE p.codigo_sku IN (?)`,
+      `${SELECT_PRODUCTO} WHERE p.codigo_sku = ANY(?)`,
       [skus]
     );
     return rows;
   }
 
   /** Igual que porSkus pero bloquea las filas (usar dentro de una transacción). */
-  async bloquearPorSkus(conexion: PoolConnection, skus: string[]): Promise<ProductoRow[]> {
+  async bloquearPorSkus(conexion: Conexion, skus: string[]): Promise<ProductoRow[]> {
     if (skus.length === 0) return [];
     const [rows] = await conexion.query<ProductoRow[]>(
-      `${SELECT_PRODUCTO} WHERE p.codigo_sku IN (?) ORDER BY p.id_producto FOR UPDATE`,
+      `${SELECT_PRODUCTO} WHERE p.codigo_sku = ANY(?) ORDER BY p.id_producto FOR UPDATE OF p`,
       [skus]
     );
     return rows;
   }
 
-  async bloquearPorIds(conexion: PoolConnection, ids: number[]): Promise<ProductoRow[]> {
+  async bloquearPorIds(conexion: Conexion, ids: number[]): Promise<ProductoRow[]> {
     if (ids.length === 0) return [];
     const [rows] = await conexion.query<ProductoRow[]>(
-      `${SELECT_PRODUCTO} WHERE p.id_producto IN (?) ORDER BY p.id_producto FOR UPDATE`,
+      `${SELECT_PRODUCTO} WHERE p.id_producto = ANY(?) ORDER BY p.id_producto FOR UPDATE OF p`,
       [ids]
     );
     return rows;
   }
 
   async categorias(): Promise<Array<{ nombre: string; cantidad: number }>> {
-    const [rows] = await pool.query<RowDataPacket[]>(
+    const [rows] = await pool.query<Fila[]>(
       `SELECT c.nombre_categoria AS nombre, COUNT(p.id_producto) AS cantidad
          FROM tbl_categorias c
          LEFT JOIN tbl_productos p
@@ -127,7 +125,7 @@ export class ProductoRepository {
   }
 
   async actualizarStock(
-    conexion: PoolConnection,
+    conexion: Conexion,
     idProducto: number,
     stockTienda: number,
     stockAlmacen: number
@@ -139,8 +137,8 @@ export class ProductoRepository {
   }
 
   /** Devuelve el id de la categoría; si no existe la crea. */
-  async categoriaPorNombre(conexion: PoolConnection, nombre: string): Promise<number> {
-    const [rows] = await conexion.query<RowDataPacket[]>(
+  async categoriaPorNombre(conexion: Conexion, nombre: string): Promise<number> {
+    const [rows] = await conexion.query<Fila[]>(
       'SELECT id_categoria FROM tbl_categorias WHERE nombre_categoria = ? LIMIT 1',
       [nombre]
     );
@@ -150,15 +148,16 @@ export class ProductoRepository {
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
       .replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'CAT';
 
-    const [res] = await conexion.execute<ResultSetHeader>(
-      'INSERT INTO tbl_categorias (codigo_categoria, nombre_categoria) VALUES (?, ?)',
+    const [res] = await conexion.execute<ResultadoEscritura>(
+      `INSERT INTO tbl_categorias (codigo_categoria, nombre_categoria) VALUES (?, ?)
+       RETURNING id_categoria AS "insertId"`,
       [codigo, nombre]
     );
     return res.insertId;
   }
 
   async crear(
-    conexion: PoolConnection,
+    conexion: Conexion,
     d: {
       sku: string; idCategoria: number; nombre: string; nombreCompleto: string;
       subcategoria: string | null; medida: string | null;
@@ -167,12 +166,13 @@ export class ProductoRepository {
       imagen: string | null; descripcion: string | null;
     }
   ): Promise<number> {
-    const [res] = await conexion.execute<ResultSetHeader>(
+    const [res] = await conexion.execute<ResultadoEscritura>(
       `INSERT INTO tbl_productos
          (codigo_sku, id_categoria, nombre, nombre_completo, subcategoria, medida,
           cantidad_caja, cantidad_bolsa, precio, stock_tienda, stock_almacen, stock_minimo,
           imagen_url, descripcion, descripcion_fotografica)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       RETURNING id_producto AS "insertId"`,
       [d.sku, d.idCategoria, d.nombre, d.nombreCompleto, d.subcategoria, d.medida,
        d.cantidadCaja, d.cantidadBolsa, d.precio, d.stockTienda, d.stockAlmacen, d.stockMinimo,
        d.imagen, d.descripcion, d.descripcion]
@@ -181,7 +181,7 @@ export class ProductoRepository {
   }
 
   async actualizar(
-    conexion: PoolConnection,
+    conexion: Conexion,
     idProducto: number,
     campos: Record<string, string | number | null>
   ): Promise<void> {

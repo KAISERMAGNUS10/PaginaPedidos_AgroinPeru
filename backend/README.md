@@ -1,48 +1,54 @@
 # Backend – AGROINPERU Pedidos (recojo en tienda)
 
-API REST en **Node.js + Express 5 + TypeScript + MySQL**, con la misma arquitectura en capas
-del proyecto `Agroinperu-main`:
+API REST en **Node.js + Express 5 + TypeScript + PostgreSQL (Supabase)**, lista para publicarse en **Vercel**.
 
 ```
 backend/
 ├── .env  .env.example  .gitignore  package.json  tsconfig.json
-├── database/db_pedidosagroinperu.sql      ← tu script de la BD (codigo_sku ampliado a 80)
+├── database/agroinperu_postgresql.sql   ← tablas + vistas + datos de prueba (pegar en Supabase)
 └── src/
-    ├── server.ts  app.ts
-    ├── config/        database.ts · cors.ts · env.ts
+    ├── app.ts              ← la app Express (Vercel la usa directamente)
+    ├── servidor-local.ts   ← arranca la API en tu PC (npm run dev)
+    ├── config/        database.ts (pg + Supabase) · cors.ts · env.ts
     ├── middlewares/   auth · error · not-found
     ├── models/        tipos TypeScript (forma = la que ya usa tu frontend)
-    ├── repositories/  SQL (mysql2)
+    ├── repositories/  SQL (PostgreSQL)
     ├── services/      reglas de negocio
     ├── controllers/   HTTP
     ├── routes/        endpoints
     ├── utils/         validadores, fechas, errores
-    └── scripts/       seed.ts + data/catalogo.json (los 401 productos del frontend)
+    └── scripts/       seed.ts (ejecuta el .sql contra DATABASE_URL)
 ```
 
-## Paso a paso
+Para publicarlo (Supabase + Vercel) sigue **[../DESPLIEGUE.md](../DESPLIEGUE.md)**.
 
-1. **Base de datos** (si aún no lo hiciste): en MySQL Workbench abre
-   `database/db_pedidosagroinperu.sql`, ejecútalo todo (Ctrl+Shift+Enter) y refresca los esquemas.
-2. **Copiar**: descomprime el zip para que `backend` quede junto a `Frontend`:
-   ```
-   PaginaPedidos_AgroinPeru/
-   ├── Frontend/
-   └── backend/      ← aquí
-   ```
-3. **Revisa `.env`** (ya viene con tus datos: `DB_PASSWORD=12345`, puerto 3000, frontend `http://localhost:4200`).
-4. **Instalar y sembrar datos** (en una terminal, dentro de `backend`):
+## Uso local
+
+1. **Base de datos**: crea el proyecto en Supabase y ejecuta `database/agroinperu_postgresql.sql`
+   en el SQL Editor (o, ya con `DATABASE_URL` configurada, `npm run seed`, que hace lo mismo).
+2. **`.env`**: copia `.env.example` a `.env` y completa `DATABASE_URL` (Supabase → **Connect** →
+   **Transaction pooler**) y `JWT_SECRET`.
+3. **Instalar y arrancar** (dentro de `backend`):
    ```bash
    npm install
-   npm run seed      # carga 11 categorías, 401 productos y las cuentas de prueba
-   npm run dev       # arranca en http://localhost:3000
+   npm run dev       # http://localhost:3000
    ```
-5. **Probar**: abre <http://localhost:3000/api/health> → debe responder `success: true`
-   y <http://localhost:3000/api/public/productos> → lista de 401 productos.
+4. **Probar**: <http://localhost:3000/api/health> → `success: true`
+   y <http://localhost:3000/api/public/productos> → 401 productos.
 
-Producción: `npm run build` y luego `npm start`.
+⚠ `npm run seed` **borra y vuelve a crear** todas las tablas con los datos de prueba.
 
-## Cuentas de prueba (las crea `npm run seed`)
+## Variables de entorno
+
+| Variable | Ejemplo | Para qué |
+|---|---|---|
+| `DATABASE_URL` | `postgresql://postgres.xxxx:CLAVE@aws-0-….pooler.supabase.com:6543/postgres` | Conexión a Supabase |
+| `JWT_SECRET` | una frase larga y aleatoria | Firma de los tokens de sesión |
+| `JWT_EXPIRES_IN` | `2h` | Duración de la sesión |
+| `FRONTEND_URL` | `http://localhost:4200,https://agroinperu.vercel.app` | Orígenes permitidos (CORS), separados por coma |
+| `PORT` | `3000` | Solo local |
+
+## Cuentas de prueba (vienen en el script SQL)
 
 | Rol     | Correo                  | Contraseña   |
 |---------|-------------------------|--------------|
@@ -51,14 +57,11 @@ Producción: `npm run build` y luego `npm start`.
 | PICKING | picking@agroinperu.com  | Picking1234  |
 | CLIENTE | cliente@agroinperu.com  | Cliente1234  |
 
-`npm run seed` se puede repetir sin problema: no duplica datos ni pisa el stock.
+## Expiración de pedidos
 
-## Qué hace el servidor al arrancar (automático)
-
-- Agrega `tbl_pedidos.fecha_cancelacion` y `tbl_notificaciones.mostrado_toast` si no existen.
-- Amplía `tbl_productos.codigo_sku` a `VARCHAR(80)` (hay SKU del catálogo de hasta 57 caracteres).
-- Garantiza los roles ADMIN / CAJA / PICKING / CLIENTE y una tienda de recojo.
-- Cada 5 min pasa a **EXPIRADO** los pedidos de más de 48 h y **devuelve su stock**.
+Los pedidos de más de 48 h pasan a **EXPIRADO** y **devuelven su stock**. No depende de un
+temporizador: cada consulta de caja, picking, pedidos, dashboard y reportes revisa los vencidos
+antes de responder (así funciona igual en Vercel). En local, además, se revisa cada 5 min.
 
 ## Endpoints
 
@@ -146,20 +149,20 @@ Todo movimiento de stock queda registrado en `tbl_movimientos_inventario` (karde
 
 ## Frontend
 
-El frontend (`../frontend`) ya está conectado a esta API. Se ejecuta con `npm start` en
-`http://localhost:4200` (ver el README del frontend). Para que el navegador pueda llamar a la API,
-`FRONTEND_URL` en `.env` debe ser exactamente `http://localhost:4200`.
+El frontend (`../frontend`) ya está conectado a esta API. La URL se elige sola en
+`frontend/src/app/core/config.ts`: en `localhost` usa `http://localhost:3000/api` y publicado usa
+`API_PRODUCCION` (la URL de este backend en Vercel). Cada URL desde donde se abra el frontend
+debe estar en `FRONTEND_URL`.
 
-## Compras (tablas nuevas)
+## Compras
 
-Al arrancar, el servidor crea solo `tbl_compras` y `tbl_detalle_compras` (no estaban en tu script).
 Registrar una compra suma stock (movimiento ENTRADA en el kardex); anularla lo resta, siempre que
 todavía haya stock suficiente en la ubicación de destino.
 
 ## Problemas frecuentes
 
-- `ER_ACCESS_DENIED_ERROR` → la contraseña de `DB_PASSWORD` no coincide con tu MySQL.
-- `ER_BAD_DB_ERROR` → falta ejecutar el script SQL (paso 1).
-- `ECONNREFUSED` → MySQL no está iniciado.
-- `Origen no permitido` → el frontend no corre en `FRONTEND_URL` (puedes poner varios separados por coma).
-- Puerto 3000 ocupado → cambia `PORT` en `.env`.
+- `Falta la variable de entorno DATABASE_URL` → no está en `.env` (local) o en Vercel → Settings → Environment Variables.
+- `password authentication failed` → la contraseña dentro de `DATABASE_URL` no es la de tu base de Supabase.
+- `relation "tbl_..." does not exist` → falta ejecutar `database/agroinperu_postgresql.sql` en Supabase.
+- `Origen no permitido` (403) → la URL del frontend no está en `FRONTEND_URL`.
+- Puerto 3000 ocupado (local) → cambia `PORT` en `.env` y `API_LOCAL` en el frontend.

@@ -1,6 +1,4 @@
-import { PoolConnection } from 'mysql2/promise';
-
-import { conTransaccion } from '../config/database';
+import { Conexion, conTransaccion, PG_VALOR_DUPLICADO } from '../config/database';
 import {
   InventarioRepository,
   MovimientoRow,
@@ -21,7 +19,7 @@ export class InventarioService {
 
   /** Descuenta stock: primero del almacén y, si falta, de la tienda. */
   async descontarParaPedido(
-    conexion: PoolConnection,
+    conexion: Conexion,
     producto: ProductoRow,
     cantidad: number,
     idUsuario: number,
@@ -70,7 +68,7 @@ export class InventarioService {
 
   /** Devuelve al stock lo que había descontado un pedido (cancelación / expiración). */
   async restaurarPedido(
-    conexion: PoolConnection,
+    conexion: Conexion,
     idPedido: number,
     idUsuario: number,
     motivo: string
@@ -332,7 +330,7 @@ export class InventarioService {
         }
       });
     } catch (error: any) {
-      if (error?.code === 'ER_DUP_ENTRY') throw conflicto('SKU_DUPLICADO', 'Ya existe un producto con ese SKU.');
+      if (error?.code === PG_VALOR_DUPLICADO) throw conflicto('SKU_DUPLICADO', 'Ya existe un producto con ese SKU.');
       throw error;
     }
 

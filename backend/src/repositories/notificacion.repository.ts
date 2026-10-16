@@ -1,8 +1,6 @@
-import { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import { Conexion, Fila, pool, ResultadoEscritura } from '../config/database';
 
-import { pool } from '../config/database';
-
-export interface NotificacionRow extends RowDataPacket {
+export interface NotificacionRow extends Fila {
   id_notificacion: number;
   id_pedido: number | null;
   codigo_ticket: string | null;
@@ -23,7 +21,7 @@ export class NotificacionRepository {
       mensaje: string;
       tipo?: 'INFO' | 'EXITO' | 'ALERTA' | 'URGENTE';
     },
-    conexion?: PoolConnection
+    conexion?: Conexion
   ): Promise<void> {
     await (conexion ?? pool).execute(
       `INSERT INTO tbl_notificaciones (id_usuario, id_pedido, titulo, mensaje, tipo)
@@ -47,7 +45,7 @@ export class NotificacionRepository {
   }
 
   async marcarLeidas(idUsuario: number, id?: number): Promise<number> {
-    const [res] = await pool.execute<ResultSetHeader>(
+    const [res] = await pool.execute<ResultadoEscritura>(
       `UPDATE tbl_notificaciones SET leido = 1, mostrado_toast = 1
         WHERE id_usuario = ? ${id ? 'AND id_notificacion = ?' : ''}`,
       id ? [idUsuario, id] : [idUsuario]

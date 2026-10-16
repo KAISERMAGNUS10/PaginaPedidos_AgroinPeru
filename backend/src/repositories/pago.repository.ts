@@ -1,20 +1,22 @@
-import { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { Conexion, Fila } from '../config/database';
 
 export class PagoRepository {
   /** Siguiente número correlativo de la serie (B001 / F001), formato 00000001. */
-  async siguienteNumero(conexion: PoolConnection, serie: string): Promise<string> {
-    const [rows] = await conexion.query<RowDataPacket[]>(
-      `SELECT COALESCE(MAX(CAST(numero_comprobante AS UNSIGNED)), 0) AS ultimo
+  async siguienteNumero(conexion: Conexion, serie: string): Promise<string> {
+    // Bloquea la serie hasta el fin de la transacción para que dos cobros no tomen el mismo número.
+    await conexion.query('SELECT pg_advisory_xact_lock(hashtext(?))', [`comprobante-${serie}`]);
+
+    const [rows] = await conexion.query<Fila[]>(
+      `SELECT COALESCE(MAX(CAST(numero_comprobante AS INTEGER)), 0) AS ultimo
          FROM tbl_pagos
-        WHERE serie_comprobante = ?
-        FOR UPDATE`,
+        WHERE serie_comprobante = ?`,
       [serie]
     );
     return String(Number(rows[0].ultimo) + 1).padStart(8, '0');
   }
 
   async registrar(
-    conexion: PoolConnection,
+    conexion: Conexion,
     datos: {
       id_pedido: number;
       id_cajero: number;

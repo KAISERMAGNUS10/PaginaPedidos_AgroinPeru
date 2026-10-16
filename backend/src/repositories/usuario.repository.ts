@@ -1,9 +1,7 @@
-import { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
-
-import { pool } from '../config/database';
+import { Conexion, Fila, pool, ResultadoEscritura } from '../config/database';
 import { RolUsuario } from '../models/auth.model';
 
-export interface UsuarioRow extends RowDataPacket {
+export interface UsuarioRow extends Fila {
   id_usuario: number;
   id_rol: number;
   nombre_rol: RolUsuario;
@@ -52,7 +50,7 @@ export class UsuarioRepository {
   }
 
   async idRol(nombre: RolUsuario): Promise<number | null> {
-    const [rows] = await pool.query<RowDataPacket[]>(
+    const [rows] = await pool.query<Fila[]>(
       'SELECT id_rol FROM tbl_roles WHERE nombre_rol = ? LIMIT 1',
       [nombre]
     );
@@ -71,13 +69,14 @@ export class UsuarioRepository {
       telefono: string;
       direccion?: string | null;
     },
-    conexion?: PoolConnection
+    conexion?: Conexion
   ): Promise<number> {
-    const [resultado] = await (conexion ?? pool).execute<ResultSetHeader>(
+    const [resultado] = await (conexion ?? pool).execute<ResultadoEscritura>(
       `INSERT INTO tbl_usuarios
          (id_rol, nombres, apellidos, tipo_documento, numero_documento,
           email, password_hash, telefono, direccion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       RETURNING id_usuario AS "insertId"`,
       [
         datos.id_rol,
         datos.nombres,
@@ -94,7 +93,7 @@ export class UsuarioRepository {
   }
 
   async registrarAcceso(id: number): Promise<void> {
-    await pool.execute('UPDATE tbl_usuarios SET ultimo_acceso = UTC_TIMESTAMP() WHERE id_usuario = ?', [id]);
+    await pool.execute('UPDATE tbl_usuarios SET ultimo_acceso = NOW() WHERE id_usuario = ?', [id]);
   }
 
   async listar(rol?: string): Promise<UsuarioRow[]> {

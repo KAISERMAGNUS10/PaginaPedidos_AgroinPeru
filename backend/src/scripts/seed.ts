@@ -2,62 +2,53 @@ import '../config/env';
 
 import fs from 'fs';
 import path from 'path';
-import { RowDataPacket } from 'mysql2/promise';
 
-import { asegurarEsquema, pool } from '../config/database';
+import { ejecutarScript, Fila, pool } from '../config/database';
 
 /*
 |--------------------------------------------------------------------------
-| Seed: deja la BD lista para probar la plataforma completa de AGROINPERU
+| Seed: crea las tablas y carga los datos de prueba en PostgreSQL
 |--------------------------------------------------------------------------
-| - Ejecuta el script SQL completo UTF-8 (database/seed_pruebas_agroinperu.sql)
-| - Siembra 11 categorías y 401 productos reales con imágenes y stock
-| - Cuentas de prueba con roles (Admin, Caja, Picking, Clientes)
-| - Pedidos de ejemplo con estados reales (Vigente, Preparación, Listo, Pagado, etc.)
-| - Pagos en caja, kardex de inventario, compras a proveedores y notificaciones
+| Ejecuta database/agroinperu_postgresql.sql contra DATABASE_URL.
+| Es lo mismo que pegar ese archivo en el SQL Editor de Supabase.
+| ⚠ Borra y vuelve a crear todas las tablas.
 |
 | Uso:  npm run seed
 */
 
 async function main(): Promise<void> {
   try {
-    console.log('🛠  Asegurando estructura y esquema de base de datos...');
-    await asegurarEsquema();
-
-    const sqlPath = path.resolve(__dirname, '../../database/seed_pruebas_agroinperu.sql');
+    const sqlPath = path.resolve(__dirname, '../../database/agroinperu_postgresql.sql');
     if (!fs.existsSync(sqlPath)) {
-      throw new Error(`No se encontró el archivo de seed en: ${sqlPath}`);
+      throw new Error(`No se encontró el archivo SQL en: ${sqlPath}`);
     }
 
-    console.log('📦 Cargando seed completo de pruebas (UTF-8)...');
-    const sqlContent = fs.readFileSync(sqlPath, 'utf8');
+    console.log('📦 Creando tablas y cargando datos de prueba...');
+    await ejecutarScript(fs.readFileSync(sqlPath, 'utf8'));
 
-    // Ejecutar statements del archivo SQL
-    await pool.query('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci');
-    await pool.query(sqlContent);
-
-    const [cats] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM tbl_categorias');
-    const [prods] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM tbl_productos');
-    const [pedidos] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM tbl_pedidos');
-    const [usuarios] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM tbl_usuarios');
-    const [compras] = await pool.query<RowDataPacket[]>('SELECT COUNT(*) AS n FROM tbl_compras');
+    const [[conteo]] = await pool.query<Fila[]>(
+      `SELECT (SELECT COUNT(*) FROM tbl_categorias) AS categorias,
+              (SELECT COUNT(*) FROM tbl_productos)  AS productos,
+              (SELECT COUNT(*) FROM tbl_usuarios)   AS usuarios,
+              (SELECT COUNT(*) FROM tbl_pedidos)    AS pedidos,
+              (SELECT COUNT(*) FROM tbl_compras)    AS compras`
+    );
 
     console.log('\n======================================================');
     console.log('✅ BASE DE DATOS SEMBRADA CON ÉXITO');
     console.log('======================================================');
-    console.log(`   - Categorías:       ${cats[0].n}`);
-    console.log(`   - Productos:        ${prods[0].n} (todos con imágenes existentes)`);
-    console.log(`   - Usuarios:         ${usuarios[0].n}`);
-    console.log(`   - Pedidos de prueba: ${pedidos[0].n}`);
-    console.log(`   - Compras stock:    ${compras[0].n}`);
+    console.log(`   - Categorías:        ${conteo.categorias}`);
+    console.log(`   - Productos:         ${conteo.productos}`);
+    console.log(`   - Usuarios:          ${conteo.usuarios}`);
+    console.log(`   - Pedidos de prueba: ${conteo.pedidos}`);
+    console.log(`   - Compras stock:     ${conteo.compras}`);
     console.log('------------------------------------------------------');
     console.log('🔑 CUENTAS DE ACCESO PARA PRUEBAS:');
-    console.log('   Rol      Email                  Contraseña');
+    console.log('   Rol      Email                   Contraseña');
     console.log('   ADMIN    admin@agroinperu.com    Admin1234');
     console.log('   CAJA     caja@agroinperu.com     Caja1234');
     console.log('   PICKING  picking@agroinperu.com  Picking1234');
     console.log('   CLIENTE  cliente@agroinperu.com  Cliente1234');
-    console.log('   (También disponibles con dominio @agroinperu.pe)');
     console.log('======================================================\n');
   } catch (error) {
     console.error('❌ Error en el seed:', error instanceof Error ? error.message : error);

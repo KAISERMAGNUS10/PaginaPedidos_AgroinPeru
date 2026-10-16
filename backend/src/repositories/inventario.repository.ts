@@ -1,6 +1,4 @@
-import { PoolConnection, RowDataPacket } from 'mysql2/promise';
-
-import { pool } from '../config/database';
+import { Conexion, Fila, pool } from '../config/database';
 
 export type Ubicacion = 'TIENDA' | 'ALMACEN';
 export type TipoMovimiento = 'ENTRADA' | 'SALIDA' | 'AJUSTE' | 'TRASLADO';
@@ -18,7 +16,7 @@ export interface MovimientoNuevo {
   motivo?: string | null;
 }
 
-export interface MovimientoRow extends RowDataPacket {
+export interface MovimientoRow extends Fila {
   id_movimiento: number;
   codigo_sku: string;
   nombre_completo: string;
@@ -36,7 +34,7 @@ export interface MovimientoRow extends RowDataPacket {
 }
 
 export class InventarioRepository {
-  async registrarMovimiento(conexion: PoolConnection, m: MovimientoNuevo): Promise<void> {
+  async registrarMovimiento(conexion: Conexion, m: MovimientoNuevo): Promise<void> {
     await conexion.execute(
       `INSERT INTO tbl_movimientos_inventario
          (id_producto, id_usuario, id_pedido, tipo_movimiento,
@@ -60,10 +58,10 @@ export class InventarioRepository {
 
   /** Salidas registradas por un pedido (para devolver el stock al cancelar / expirar). */
   async salidasDePedido(
-    conexion: PoolConnection,
+    conexion: Conexion,
     idPedido: number
   ): Promise<Array<{ id_producto: number; ubicacion: Ubicacion; cantidad: number }>> {
-    const [rows] = await conexion.query<RowDataPacket[]>(
+    const [rows] = await conexion.query<Fila[]>(
       `SELECT id_producto, ubicacion_origen AS ubicacion, SUM(cantidad) AS cantidad
          FROM tbl_movimientos_inventario
         WHERE id_pedido = ? AND tipo_movimiento = 'SALIDA'

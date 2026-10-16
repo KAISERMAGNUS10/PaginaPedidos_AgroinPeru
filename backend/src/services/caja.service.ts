@@ -35,7 +35,8 @@ export class CajaService {
 
     await expirarVencidos();
 
-    const porTicket = await repoPedido.tickets({ where: 'p.codigo_ticket = ?', params: [q] });
+    // Los tickets se guardan en mayúsculas (TK-2026-00001): la búsqueda no distingue mayúsculas.
+    const porTicket = await repoPedido.tickets({ where: 'p.codigo_ticket = ?', params: [q.toUpperCase()] });
     if (porTicket.length > 0) return porTicket;
 
     return repoPedido.tickets({ where: 'p.numero_documento_comprobante = ?', params: [q] });

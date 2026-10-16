@@ -1,8 +1,6 @@
-import { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import { Conexion, Fila, pool, ResultadoEscritura } from '../config/database';
 
-import { pool } from '../config/database';
-
-export interface CompraRow extends RowDataPacket {
+export interface CompraRow extends Fila {
   id_compra: number;
   codigo_compra: string;
   proveedor_nombre: string;
@@ -22,7 +20,7 @@ export interface CompraRow extends RowDataPacket {
   unidades: number;
 }
 
-export interface DetalleCompraRow extends RowDataPacket {
+export interface DetalleCompraRow extends Fila {
   id_producto: number;
   codigo_sku: string;
   nombre_completo: string;
@@ -56,7 +54,7 @@ export class CompraRepository {
     return rows[0] ?? null;
   }
 
-  async detalle(idCompra: number, conexion?: PoolConnection): Promise<DetalleCompraRow[]> {
+  async detalle(idCompra: number, conexion?: Conexion): Promise<DetalleCompraRow[]> {
     const [rows] = await (conexion ?? pool).query<DetalleCompraRow[]>(
       `SELECT d.id_producto, p.codigo_sku, p.nombre_completo, d.cantidad, d.costo_unitario, d.subtotal
          FROM tbl_detalle_compras d
@@ -68,10 +66,10 @@ export class CompraRepository {
     return rows;
   }
 
-  async siguienteCodigo(conexion: PoolConnection): Promise<string> {
+  async siguienteCodigo(conexion: Conexion): Promise<string> {
     const prefijo = `C-${new Date().getUTCFullYear()}-`;
-    const [rows] = await conexion.query<RowDataPacket[]>(
-      `SELECT COALESCE(MAX(CAST(SUBSTRING(codigo_compra, ?) AS UNSIGNED)), 0) AS ultimo
+    const [rows] = await conexion.query<Fila[]>(
+      `SELECT COALESCE(MAX(CAST(SUBSTRING(codigo_compra FROM ?::int) AS INTEGER)), 0) AS ultimo
          FROM tbl_compras WHERE codigo_compra LIKE ?`,
       [prefijo.length + 1, `${prefijo}%`]
     );
@@ -79,7 +77,7 @@ export class CompraRepository {
   }
 
   async crear(
-    conexion: PoolConnection,
+    conexion: Conexion,
     datos: {
       codigo: string;
       idUsuario: number;
@@ -95,11 +93,12 @@ export class CompraRepository {
     },
     lineas: Array<{ id_producto: number; cantidad: number; costo: number; subtotal: number }>
   ): Promise<number> {
-    const [res] = await conexion.execute<ResultSetHeader>(
+    const [res] = await conexion.execute<ResultadoEscritura>(
       `INSERT INTO tbl_compras
          (codigo_compra, id_usuario, proveedor_nombre, proveedor_ruc, tipo_comprobante,
           numero_comprobante, ubicacion_destino, subtotal, igv, total, observaciones)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       RETURNING id_compra AS "insertId"`,
       [
         datos.codigo, datos.idUsuario, datos.proveedorNombre, datos.proveedorRuc,
         datos.tipoComprobante, datos.numeroComprobante, datos.ubicacion,
@@ -117,7 +116,7 @@ export class CompraRepository {
     return res.insertId;
   }
 
-  async bloquearPorCodigo(conexion: PoolConnection, codigo: string): Promise<CompraRow | null> {
+  async bloquearPorCodigo(conexion: Conexion, codigo: string): Promise<CompraRow | null> {
     const [rows] = await conexion.query<CompraRow[]>(
       'SELECT * FROM tbl_compras WHERE codigo_compra = ? LIMIT 1 FOR UPDATE',
       [codigo]
@@ -125,9 +124,9 @@ export class CompraRepository {
     return rows[0] ?? null;
   }
 
-  async marcarAnulada(conexion: PoolConnection, idCompra: number): Promise<void> {
+  async marcarAnulada(conexion: Conexion, idCompra: number): Promise<void> {
     await conexion.execute(
-      "UPDATE tbl_compras SET estado = 'ANULADA', fecha_anulacion = UTC_TIMESTAMP() WHERE id_compra = ?",
+      "UPDATE tbl_compras SET estado = 'ANULADA', fecha_anulacion = NOW() WHERE id_compra = ?",
       [idCompra]
     );
   }
