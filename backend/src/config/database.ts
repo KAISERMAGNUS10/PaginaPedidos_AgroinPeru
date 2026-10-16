@@ -1,9 +1,8 @@
-import './env';
 import { Pool, PoolClient, QueryResult, types } from 'pg';
 
 /*
- * Conexión a PostgreSQL (Supabase).
- * DATABASE_URL = cadena de conexión del "Connection pooler" de Supabase.
+ * Conexión a PostgreSQL en Supabase.
+ * DATABASE_URL (variable de entorno en Vercel) = cadena del "Transaction pooler" de Supabase.
  */
 
 // COUNT/SUM devuelven BIGINT y NUMERIC: pg los entrega como texto; aquí se convierten a número.
@@ -16,14 +15,11 @@ if (!urlConexion) {
   throw new Error('Falta la variable de entorno DATABASE_URL (cadena de conexión de Supabase).');
 }
 
-const esLocal = /@(localhost|127\.0\.0\.1)(:|\/)/.test(urlConexion);
-
 const poolPg = new Pool({
   connectionString: urlConexion,
-  // Supabase exige SSL; una base local normalmente no lo usa.
-  ssl: esLocal ? false : { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: false },
   // En Vercel cada instancia es efímera: pocas conexiones y cierre rápido de las inactivas.
-  max: Number(process.env.DB_POOL_MAX) || 5,
+  max: 5,
   idleTimeoutMillis: 10_000,
   connectionTimeoutMillis: 10_000
 });
@@ -78,9 +74,7 @@ export class Conexion {
   }
 }
 
-export const pool = Object.assign(new Conexion(poolPg), {
-  end: () => poolPg.end()
-});
+export const pool = new Conexion(poolPg);
 
 /** Ejecuta `fn` dentro de una transacción (commit si todo sale bien, rollback si falla). */
 export async function conTransaccion<T>(fn: (conexion: Conexion) => Promise<T>): Promise<T> {
@@ -110,13 +104,3 @@ export function contiene(columna: string): string {
 
 /** Código de PostgreSQL para "valor duplicado" (equivale a ER_DUP_ENTRY de MySQL). */
 export const PG_VALOR_DUPLICADO = '23505';
-
-export async function testDatabaseConnection(): Promise<void> {
-  await poolPg.query('SELECT 1');
-  console.log('✅ Conexión a PostgreSQL establecida correctamente');
-}
-
-/** Ejecuta un archivo .sql completo (varias sentencias, sin parámetros). */
-export async function ejecutarScript(sql: string): Promise<void> {
-  await poolPg.query(sql);
-}

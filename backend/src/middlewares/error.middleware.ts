@@ -22,15 +22,6 @@ export function manejarErrorGlobal(
     return;
   }
 
-  if (error instanceof Error && error.message === 'ORIGEN_NO_PERMITIDO') {
-    res.status(403).json({
-      success: false,
-      code: 'ORIGEN_NO_PERMITIDO',
-      message: 'Origen no permitido'
-    });
-    return;
-  }
-
   // JSON mal formado en el body
   if (error instanceof SyntaxError && 'body' in error) {
     res.status(400).json({

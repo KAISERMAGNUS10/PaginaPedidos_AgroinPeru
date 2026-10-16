@@ -48,7 +48,7 @@ export async function apiFetch<T = any>(ruta: string, opciones: Opciones = {}): 
     throw new ApiError(
       0,
       'SIN_CONEXION',
-      'No se pudo conectar con el servidor. Verifica que el backend esté encendido (cd backend → npm run dev).'
+      'No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo nuevamente.'
     );
   }
 

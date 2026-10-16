@@ -1,103 +1,75 @@
-# Despliegue: Supabase (base de datos) + Vercel (backend y frontend)
+# Despliegue: Vercel (página + API) y Supabase (base de datos)
 
-El orden importa: **primero la base de datos**, luego el **backend** (necesita la base) y al
-final el **frontend** (necesita la URL del backend).
+Todo corre en internet; no hay que encender nada en una PC.
 
 ```
-Navegador ──► Frontend (Vercel, estático) ──► Backend /api (Vercel, Express) ──► PostgreSQL (Supabase)
+Navegador ──► https://<proyecto>.vercel.app        (frontend Angular, estático)
+          └─► https://<proyecto>.vercel.app/api/*  (API Express, función de Vercel) ──► PostgreSQL en Supabase
 ```
 
-Se crean **dos proyectos en Vercel** desde el mismo repositorio de GitHub
-(`KAISERMAGNUS10/PaginaPedidos_AgroinPeru`): uno con carpeta raíz `backend` y otro con `frontend`.
+Es **un solo proyecto en Vercel**, creado desde el repositorio
+`KAISERMAGNUS10/PaginaPedidos_AgroinPeru`. La configuración ya está en `vercel.json` (raíz):
+compila el frontend, publica la API en `/api` y ambos quedan en el mismo dominio.
 
 ---
 
-## 0. Subir los cambios a GitHub
+## 1. Supabase (✅ ya hecho)
 
-```bash
-git add -A
-git commit -m "Migrar backend a PostgreSQL (Supabase) y preparar Vercel"
-git push
-```
+Las tablas y los datos ya están cargados (`backend/database/agroinperu_postgresql.sql`).
+Solo falta copiar la **cadena de conexión**:
 
-## 1. Supabase: crear la base de datos
-
-1. Entra a <https://supabase.com> → **New project**. Elige un nombre, una **contraseña de base de
-   datos** (guárdala, la usarás en el paso 1.4) y la región **más cercana** (p. ej. *South America (São Paulo)*
-   o *East US*).
-2. Cuando termine de crearse: menú izquierdo → **SQL Editor** → **New query**.
-3. Abre `backend/database/agroinperu_postgresql.sql`, copia **todo**, pégalo y presiona **Run**.
-   Debe terminar en *Success*. En **Table Editor** verás 15 tablas (`tbl_productos` con 401 filas).
-   > Si Supabase muestra un aviso de "operación destructiva" es por los `DROP TABLE IF EXISTS`
-   > del inicio (sirven para poder re-ejecutarlo): confirma.
-4. Botón **Connect** (arriba) → pestaña **Connection string** → **Transaction pooler** (puerto **6543**).
-   Copia la URI y reemplaza `[YOUR-PASSWORD]` por tu contraseña. Ese texto es tu `DATABASE_URL`:
+1. Supabase → tu proyecto → botón **Connect** (arriba).
+2. Pestaña **Connection string** → **Transaction pooler** (puerto **6543**).
+3. Copia la URI y reemplaza `[YOUR-PASSWORD]` por la contraseña de la base de datos:
    ```
    postgresql://postgres.abcdefghijk:TU_CLAVE@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
    ```
-   > Si tu contraseña tiene símbolos como `@ # / ?`, cámbiala por una solo con letras y números
-   > (Project Settings → Database → Reset password) para evitar errores en la URL.
+   > Si no recuerdas la contraseña o tiene símbolos como `@ # / ?`: Project Settings → Database →
+   > **Reset database password** y elige una solo con letras y números.
 
-## 2. Vercel: publicar el backend
+## 2. Vercel: crear el proyecto
 
-1. <https://vercel.com> → **Add New… → Project** → importa el repositorio de GitHub.
-2. **Root Directory**: `backend`. **Framework Preset**: *Express* (lo detecta solo).
-3. **Environment Variables** (agrega las cuatro):
+1. <https://vercel.com> → **Add New… → Project** → importa `PaginaPedidos_AgroinPeru`.
+2. **Root Directory**: déjalo vacío (la raíz del repositorio). **Framework Preset**: *Other*.
+   No cambies Build/Output/Install: se leen de `vercel.json`.
+3. **Environment Variables**:
 
    | Nombre | Valor |
    |---|---|
-   | `DATABASE_URL` | la URI del paso 1.4 |
+   | `DATABASE_URL` | la URI del paso 1 |
    | `JWT_SECRET` | una frase larga y aleatoria (no la compartas) |
-   | `JWT_EXPIRES_IN` | `2h` |
-   | `FRONTEND_URL` | `http://localhost:4200` (en el paso 4 agregas la URL real) |
+   | `JWT_EXPIRES_IN` | `8h` |
 
-4. **Deploy**. Al terminar, copia el dominio, por ejemplo `https://agroinperu-api.vercel.app`.
-5. Prueba en el navegador:
-   - `https://TU-BACKEND.vercel.app/api/health` → `"success": true`
-   - `https://TU-BACKEND.vercel.app/api/public/productos` → lista de productos (si responde, la conexión a Supabase funciona).
+4. **Deploy**. Cuando termine, abre el dominio que te da Vercel (p. ej. `https://agroinperu.vercel.app`).
 
-## 3. Apuntar el frontend al backend publicado
+> Si el proyecto ya existía con otra configuración (Root Directory `backend` o `frontend`):
+> Settings → Build and Deployment → Root Directory vacío y Framework *Other*; luego Redeploy.
 
-En `frontend/src/app/core/config.ts` cambia **solo** esta línea por tu dominio del paso 2.4:
+## 3. Comprobar
 
-```ts
-const API_PRODUCCION = 'https://TU-BACKEND.vercel.app/api';
-```
+- `https://TU-PROYECTO.vercel.app/api/health` → `"success": true`
+- `https://TU-PROYECTO.vercel.app/api/public/productos` → lista de productos (la API sí llega a Supabase)
+- `https://TU-PROYECTO.vercel.app` → la tienda. Entra con estas cuentas:
 
-(En `localhost` el frontend sigue usando `http://localhost:3000/api` automáticamente.) Luego:
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Administrador | admin@agroinperu.com | Admin1234 |
+| Cajero | caja@agroinperu.com | Caja1234 |
+| Almacén | picking@agroinperu.com | Picking1234 |
+| Cliente | cliente@agroinperu.com | Cliente1234 |
 
-```bash
-git add frontend/src/app/core/config.ts
-git commit -m "URL del backend en producción"
-git push
-```
+Cada `git push` a `main` vuelve a publicar todo automáticamente.
 
-## 4. Vercel: publicar el frontend
+## Antes de la exposición
 
-1. Vercel → **Add New… → Project** → el **mismo** repositorio otra vez.
-2. **Root Directory**: `frontend`. El resto lo toma de `frontend/vercel.json`
-   (compila con `npm run build` y publica `dist/Frontend/browser`). No necesita variables.
-3. **Deploy** y copia el dominio, por ejemplo `https://agroinperu.vercel.app`.
-4. Vuelve al proyecto **backend** → Settings → Environment Variables → edita `FRONTEND_URL`:
-   ```
-   http://localhost:4200,https://agroinperu.vercel.app
-   ```
-   Luego **Deployments → ⋯ → Redeploy** (las variables solo se aplican en un nuevo despliegue).
-
-## 5. Probar todo
-
-Abre la URL del frontend, entra con `cliente@agroinperu.com` / `Cliente1234`, agrega productos al
-carrito y genera un pedido. Después entra como `caja@…`, `picking@…` y `admin@…` (contraseñas en
-`backend/README.md`).
-
-Cada `git push` vuelve a desplegar ambos proyectos automáticamente.
+Supabase pausa los proyectos gratuitos tras **7 días sin uso**. Uno o dos días antes, abre la
+página y navega un poco (o entra a Supabase y, si aparece pausado, pulsa **Restore project**).
 
 ## Problemas frecuentes
 
 | Síntoma | Causa / solución |
 |---|---|
-| El frontend dice "No se pudo conectar con el servidor" | `API_PRODUCCION` mal escrita (paso 3) o el backend no responde a `/api/health`. |
-| Error 403 "Origen no permitido" | La URL del frontend no está en `FRONTEND_URL` del backend, o no hiciste Redeploy (paso 4.4). |
-| `/api/health` funciona pero `/api/public/productos` da error 500 | Revisa `DATABASE_URL` (contraseña, puerto 6543). En Vercel: proyecto backend → **Logs**. |
-| `relation "tbl_productos" does not exist` | No se ejecutó el script SQL en Supabase (paso 1.3). |
-| Supabase pausó el proyecto | Los proyectos gratis se pausan tras ~1 semana sin uso: Supabase → **Restore project**. |
+| La página dice "No se pudo conectar con el servidor" | Abre `/api/health`. Si falla, revisa el despliegue en Vercel → **Logs**. |
+| `/api/health` funciona pero `/api/public/productos` da error 500 | `DATABASE_URL` mal copiada (contraseña o puerto 6543). Corrígela en Settings → Environment Variables y haz **Redeploy**. |
+| Error 500 "Falta la variable de entorno DATABASE_URL" | No se agregó la variable, o se agregó después del deploy: haz **Redeploy**. |
+| No se puede iniciar sesión (error 500) | Falta `JWT_SECRET`. Agrégala y haz **Redeploy**. |

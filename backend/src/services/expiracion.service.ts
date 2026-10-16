@@ -11,7 +11,7 @@ let ultimaEjecucion = 0;
 
 /**
  * RF11: un pedido vence a las 48 h. Pasa a EXPIRADO y devuelve el stock reservado.
- * Se llama desde un temporizador del servidor y antes de operaciones sensibles
+ * Se llama antes de las consultas de pedidos, caja, picking, dashboard y reportes
  * (con límite de frecuencia para no saturar la BD).
  */
 export async function expirarVencidos(forzar = false): Promise<number> {

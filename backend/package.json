@@ -1,32 +1,23 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "API REST de AGROINPERU - Pedidos web con recojo en tienda (Express + PostgreSQL/Supabase)",
-  "main": "dist/app.js",
+  "description": "API REST de AGROINPERU (Express + PostgreSQL en Supabase). Se publica en Vercel como /api.",
   "type": "commonjs",
   "scripts": {
-    "dev": "tsx watch src/servidor-local.ts",
-    "build": "tsc",
-    "start": "node dist/servidor-local.js",
-    "seed": "tsx src/scripts/seed.ts"
+    "typecheck": "tsc"
   },
-  "keywords": [],
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.5.0",
     "@types/pg": "^8.23.1",
-    "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   },
   "engines": {

@@ -3,27 +3,11 @@
 Tienda web con recojo en tienda + panel interno (Administrador, Caja y Almacén).
 Ya está **conectado al backend** (`../backend`): no usa datos guardados en el navegador, todo viene de la API y de PostgreSQL (Supabase).
 
-## Cómo ejecutarlo
+## Dónde corre
 
-Necesitas **dos terminales** (primero el backend):
-
-```bash
-# Terminal 1
-cd backend
-npm install        # solo la primera vez
-npm run seed       # solo la primera vez (carga productos y cuentas de prueba)
-npm run dev
-
-# Terminal 2
-cd frontend
-npm install        # solo la primera vez
-npm start
-```
-
-Abre **http://localhost:4200**. (Angular 22 pide Node.js 22.22.3 o superior.)
-
-Si cambias el puerto del backend (`PORT` en `backend/.env`), cámbialo también en
-`src/app/core/config.ts` (`API_URL`).
+Se publica en **Vercel** junto con la API (mismo dominio, la API en `/api`); los datos están en
+**Supabase**. No se ejecuta en local: los pasos están en **[../DESPLIEGUE.md](../DESPLIEGUE.md)**.
+Todas las páginas se generan como archivos estáticos al compilar (`npm run build`, lo hace Vercel).
 
 ## Cuentas de prueba
 

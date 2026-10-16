@@ -1,12 +1,7 @@
 /**
- * URL base del backend.
- * - En tu PC (localhost) usa el backend local: si cambias PORT en backend/.env, cámbialo aquí.
- * - Publicado (Vercel) usa la URL del proyecto backend en Vercel: reemplázala por la tuya.
+ * URL base de la API. El frontend y la API se publican juntos en Vercel,
+ * así que la API vive en el mismo dominio: https://<tu-proyecto>.vercel.app/api
  */
-const API_LOCAL = 'http://localhost:3000/api';
-const API_PRODUCCION = 'https://agroinperu-api.vercel.app/api';
+const ORIGEN = typeof window === 'undefined' ? 'http://localhost' : window.location.origin;
 
-const enLocal =
-  typeof window === 'undefined' || ['localhost', '127.0.0.1'].includes(window.location.hostname);
-
-export const API_URL = enLocal ? API_LOCAL : API_PRODUCCION;
+export const API_URL = `${ORIGEN}/api`;
