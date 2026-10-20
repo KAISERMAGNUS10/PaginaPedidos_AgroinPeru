@@ -1,4 +1,5 @@
 // @ts-nocheck
+// Migrado de carrito.html + script en línea
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
@@ -13,7 +14,7 @@ import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
   imports: [RouterLink],
   templateUrl: './carrito.html',
   styleUrls: ['../../../../styles/header.css', './carrito.css', '../../../../styles/ui-enhancements.css'],
-  // Estilos de la página sin encapsulación y respetando los espacios del HTML.
+  // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
   encapsulation: ViewEncapsulation.None,
   preserveWhitespaces: true,
   host: { style: 'display: contents' }
@@ -22,7 +23,7 @@ export class Carrito implements OnDestroy {
   private limpiar: Limpiador | null = null;
 
   constructor() {
-    // La lógica necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
+    // El JS original necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
     afterNextRender(() => {
       this.limpiar = ejecutarPagina(() => {
         iniciarGlobalPublico();
@@ -41,7 +42,7 @@ export class Carrito implements OnDestroy {
 }
 
 // ==========================================================================
-// LÓGICA DE LA PÁGINA
+// LÓGICA ORIGINAL (copiada tal cual del proyecto viejo)
 // ==========================================================================
 function iniciarCarrito() {
 

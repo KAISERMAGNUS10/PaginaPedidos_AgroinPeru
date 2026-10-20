@@ -12,7 +12,7 @@ export class App {
   protected readonly title = signal('Frontend');
 
   constructor() {
-    // Las páginas navegan con irA('/login'); necesita el Router de Angular.
+    // El JS migrado navega con irA('/login'); necesita el Router de Angular.
     registrarRouter(inject(Router));
   }
 }

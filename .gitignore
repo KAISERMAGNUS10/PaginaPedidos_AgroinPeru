@@ -1,5 +1,4 @@
 node_modules/
 .vercel/
 .env*
-frontend/dist/
-frontend/.angular/
+!.env.example

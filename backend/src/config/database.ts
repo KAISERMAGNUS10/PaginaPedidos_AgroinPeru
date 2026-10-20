@@ -94,13 +94,13 @@ export async function conTransaccion<T>(fn: (conexion: Conexion) => Promise<T>):
 }
 
 /**
- * Búsqueda sin distinguir mayúsculas ni tildes ("valvula" encuentra "Válvula").
- * Uso: `${contiene('p.nombre')}` con el texto en params.
+ * Búsqueda sin distinguir mayúsculas ni tildes ("valvula" encuentra "Válvula"),
+ * igual que hacía la collation utf8mb4_unicode_ci de MySQL. Uso: `${contiene('p.nombre')}` con el texto en params.
  */
 export function contiene(columna: string): string {
   const quitarTildes = (expr: string) => `TRANSLATE(${expr}, 'áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunAEIOUUN')`;
   return `${quitarTildes(columna)} ILIKE ${quitarTildes('?')}`;
 }
 
-/** Código de PostgreSQL para "valor duplicado" (viola un índice UNIQUE). */
+/** Código de PostgreSQL para "valor duplicado" (equivale a ER_DUP_ENTRY de MySQL). */
 export const PG_VALOR_DUPLICADO = '23505';
