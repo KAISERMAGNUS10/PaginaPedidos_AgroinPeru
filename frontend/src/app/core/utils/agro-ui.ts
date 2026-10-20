@@ -1,4 +1,4 @@
-// Migrado de js/ui-enhancements.js (toasts, validación visual y etiquetas de estado)
+// Utilidades de interfaz: toasts, validación visual y etiquetas de estado.
 
 export type TipoToast = 'success' | 'warning' | 'error' | 'info';
 
@@ -64,7 +64,7 @@ function statusLabel(status?: string): string {
 
 export const AgroUI = { toast, setFieldState, statusLabel };
 
-// El código migrado todavía pregunta "if (window.AgroUI)", así que se publica también en window (solo navegador).
+// Algunas páginas preguntan "if (window.AgroUI)", así que se publica también en window (solo navegador).
 if (typeof window !== 'undefined') {
   (window as any).AgroUI = AgroUI;
 }

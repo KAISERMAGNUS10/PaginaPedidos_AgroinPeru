@@ -1,5 +1,4 @@
 // @ts-nocheck
-// Migrado de registro.html + registro.js
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
@@ -14,7 +13,7 @@ import { AgroUI } from '../../../core/utils/agro-ui';
   imports: [RouterLink],
   templateUrl: './registro.html',
   styleUrls: ['./registro.css', '../../../../styles/ui-enhancements.css'],
-  // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
+  // Estilos de la página sin encapsulación y respetando los espacios del HTML.
   encapsulation: ViewEncapsulation.None,
   preserveWhitespaces: true,
   host: { style: 'display: contents' }
@@ -23,7 +22,7 @@ export class Registro implements OnDestroy {
   private limpiar: Limpiador | null = null;
 
   constructor() {
-    // El JS original necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
+    // La lógica necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
     afterNextRender(() => {
       this.limpiar = ejecutarPagina(() => {
         iniciarRegistro();
@@ -37,7 +36,7 @@ export class Registro implements OnDestroy {
 }
 
 // ==========================================================================
-// LÓGICA ORIGINAL (copiada tal cual del proyecto viejo)
+// LÓGICA DE LA PÁGINA
 // ==========================================================================
 function iniciarRegistro() {
 const inputCorreo = document.getElementById('reg-correo');

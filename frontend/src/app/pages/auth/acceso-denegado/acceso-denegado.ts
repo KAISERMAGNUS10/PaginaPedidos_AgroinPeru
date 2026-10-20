@@ -1,5 +1,4 @@
 // @ts-nocheck
-// Migrado de acceso-denegado.html + script en línea
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
@@ -11,7 +10,7 @@ import { limpiarSesionSegura, obtenerSesionSegura } from '../../../core/utils/au
   imports: [RouterLink],
   templateUrl: './acceso-denegado.html',
   styleUrls: ['../../../../styles/ui-enhancements.css', './acceso-denegado.css'],
-  // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
+  // Estilos de la página sin encapsulación y respetando los espacios del HTML.
   encapsulation: ViewEncapsulation.None,
   preserveWhitespaces: true,
   host: { style: 'display: contents' }
@@ -20,7 +19,7 @@ export class AccesoDenegado implements OnDestroy {
   private limpiar: Limpiador | null = null;
 
   constructor() {
-    // El JS original necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
+    // La lógica necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
     afterNextRender(() => {
       this.limpiar = ejecutarPagina(() => {
         iniciarAccesoDenegado();
@@ -34,7 +33,7 @@ export class AccesoDenegado implements OnDestroy {
 }
 
 // ==========================================================================
-// LÓGICA ORIGINAL (copiada tal cual del proyecto viejo)
+// LÓGICA DE LA PÁGINA
 // ==========================================================================
 function iniciarAccesoDenegado() {
 

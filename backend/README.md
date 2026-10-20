@@ -1,14 +1,13 @@
 # Backend – AGROINPERU Pedidos (recojo en tienda)
 
 API REST en **Express 5 + TypeScript**, publicada en **Vercel** como `/api` (mismo dominio que la
-página) y conectada a **PostgreSQL en Supabase**. No se ejecuta en local: para publicarla sigue
-**[../DESPLIEGUE.md](../DESPLIEGUE.md)**.
+página) y conectada a **PostgreSQL en Supabase**.
 
 ```
+vercel.json                  ← (raíz del repo) compila el frontend y envía /api/* a la función
 api/index.ts                 ← (raíz del repo) función de Vercel: entrega cada /api/* a src/app.ts
 backend/
-├── database/agroinperu_postgresql.sql   ← tablas + vistas + datos de prueba (ya ejecutado en Supabase)
-├── .env.example                         ← referencia de las variables de Vercel
+├── database/agroinperu_postgresql.sql   ← script completo: 16 tablas, 3 vistas y datos de prueba
 └── src/
     ├── app.ts         ← la app Express con todas las rutas
     ├── config/        database.ts (conexión a Supabase con pg)
@@ -20,6 +19,17 @@ backend/
     ├── routes/        endpoints
     └── utils/         validadores, fechas, errores
 ```
+
+## Publicación
+
+Un solo proyecto en Vercel, creado desde este repositorio con **Root Directory vacío** (la raíz) y
+Framework **Other**; el resto lo lee de `vercel.json`. Cada `git push` a `main` vuelve a publicar.
+
+`database/agroinperu_postgresql.sql` crea la base desde cero (Supabase → SQL Editor → Run).
+⚠ Borra y vuelve a crear todas las tablas: no ejecutarlo sobre la base que ya está en uso.
+
+Supabase pausa los proyectos gratuitos tras **7 días sin uso**: antes de una exposición, abre la
+página o, si aparece pausado, pulsa **Restore project** en Supabase.
 
 ## Variables de entorno (Vercel → Settings → Environment Variables)
 
@@ -150,5 +160,12 @@ todavía haya stock suficiente en la ubicación de destino.
 
 ## Problemas frecuentes
 
-Ver la tabla al final de [../DESPLIEGUE.md](../DESPLIEGUE.md). Los errores de la API se ven en
-Vercel → el proyecto → **Logs**.
+Los errores de la API se ven en Vercel → el proyecto → **Logs**.
+
+| Síntoma | Causa / solución |
+|---|---|
+| "No se pudo conectar con el servidor" | Abre `/api/health`. Si falla, revisa el despliegue en Vercel → **Logs**. |
+| `/api/health` funciona pero los productos dan error 500 | `DATABASE_URL` mal copiada (contraseña o puerto 6543): corrígela y haz **Redeploy**. |
+| Error 500 "Falta la variable de entorno DATABASE_URL" | Falta la variable o se agregó después del deploy: haz **Redeploy**. |
+| No se puede iniciar sesión (error 500) | Falta `JWT_SECRET`: agrégala y haz **Redeploy**. |
+| La página no carga datos tras días sin uso | Supabase pausó el proyecto: **Restore project**. |

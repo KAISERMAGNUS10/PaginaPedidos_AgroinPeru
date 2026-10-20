@@ -1,13 +1,13 @@
 # AGROINPERU · Frontend (Angular 22)
 
-Tienda web con recojo en tienda + panel interno (Administrador, Caja y Almacén).
-Ya está **conectado al backend** (`../backend`): no usa datos guardados en el navegador, todo viene de la API y de PostgreSQL (Supabase).
+Tienda web con recojo en tienda + panel interno (Administrador, Caja, Almacén y Soporte).
+Todo viene de la API (`/api`) y de la base PostgreSQL en Supabase.
 
 ## Dónde corre
 
-Se publica en **Vercel** junto con la API (mismo dominio, la API en `/api`); los datos están en
-**Supabase**. No se ejecuta en local: los pasos están en **[../DESPLIEGUE.md](../DESPLIEGUE.md)**.
-Todas las páginas se generan como archivos estáticos al compilar (`npm run build`, lo hace Vercel).
+Se publica en **Vercel** junto con la API, en el mismo dominio (la API en `/api`).
+Al compilar (`npm run build`, lo hace Vercel) todas las páginas se generan como archivos estáticos.
+La configuración de publicación está en `../vercel.json` y la del backend en `../backend/README.md`.
 
 ## Cuentas de prueba
 
@@ -16,14 +16,18 @@ Todas las páginas se generan como archivos estáticos al compilar (`npm run bui
 | Administrador | admin@agroinperu.com | Admin1234 | `/admin` |
 | Cajero | caja@agroinperu.com | Caja1234 | `/admin/caja` |
 | Almacenero | picking@agroinperu.com | Picking1234 | `/admin/picking` |
+| Soporte | soporte@agroinperu.com | Soporte1234 | `/admin/soporte` |
 | Cliente | cliente@agroinperu.com | Cliente1234 | tienda `/` |
 
-Cada rol entra **solo a su módulo**. El administrador ya no usa caja ni almacén.
+Cada rol entra **solo a su módulo**.
 
 ## Pantallas
 
 **Tienda (cliente):** catálogo, producto, carrito (invitado o con sesión), checkout, ticket,
-mis pedidos (cancelar, persona autorizada), notificaciones de "pedido listo".
+mis pedidos (cancelar, persona autorizada), notificaciones de "pedido listo" y **Mi cuenta**
+(datos y cambio de contraseña).
+
+**Inicio de sesión:** "¿Olvidaste tu contraseña?" envía correo + documento al área de soporte.
 
 **Administrador (`/admin`):** Dashboard · Ventas · Compras · Inventario · Reportes · Usuarios.
 - *Usuarios*: crear, editar, cambiar rol, restablecer contraseña, bloquear/reactivar.
@@ -38,13 +42,16 @@ mis pedidos (cancelar, persona autorizada), notificaciones de "pedido listo".
 **Almacenero (`/admin/picking`):** tarjetas de pedidos por preparar con checklist, pedidos por entregar
 (con la persona autorizada) e historial de entregas.
 
-## Estructura útil
+**Soporte (`/admin/soporte`):** solicitudes de recuperación de contraseña. Restablece a la temporal
+`12345678` (el usuario debe cambiarla al entrar) o rechaza la solicitud.
+
+## Estructura
 
 ```
 src/app/
-├── core/            config.ts (URL del API) · utils/api.ts (cliente HTTP + token) · guards · services
+├── core/            config.ts (ruta de la API) · utils/api.ts (cliente HTTP + token) · guards · services
 ├── layouts/         public-layout (tienda) · admin-layout (panel con menú lateral por rol)
-├── pages/           auth · public · client · admin/{dashboard,usuarios,inventario,ventas,compras,reportes,caja,picking}
+├── pages/           auth · public · client · admin/{dashboard,usuarios,inventario,ventas,compras,reportes,caja,picking,soporte}
 ├── shared/          componentes del panel (modal, iconos, gráficos, confirmación…)
 └── models/
 src/styles/panel.css  diseño del panel interno

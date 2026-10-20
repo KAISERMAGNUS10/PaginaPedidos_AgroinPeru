@@ -353,7 +353,7 @@ COMMENT ON TABLE tbl_carrito IS 'Carrito de compras del cliente';
 COMMENT ON COLUMN tbl_carrito.id_pedido IS 'Se llena cuando el carrito se convierte en pedido';
 COMMENT ON COLUMN tbl_carrito.estado IS 'ACTIVO / CONVERTIDO / ABANDONADO';
 
--- Equivalente a "ON UPDATE CURRENT_TIMESTAMP" de MySQL.
+-- Actualiza fecha_actualizacion automáticamente en cada UPDATE.
 CREATE FUNCTION fn_actualizar_fecha_actualizacion() RETURNS TRIGGER
 LANGUAGE plpgsql
 SET search_path = public

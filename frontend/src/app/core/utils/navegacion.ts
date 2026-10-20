@@ -2,10 +2,9 @@ import { Router } from '@angular/router';
 
 /*
 |--------------------------------------------------------------------------
-| Puente entre el código JavaScript migrado y el Router de Angular
+| Puente entre la lógica de las páginas y el Router de Angular
 |--------------------------------------------------------------------------
-| El proyecto viejo navegaba con window.location.href = 'login.html'.
-| Aquí se reemplaza por irA('/login'), que usa el Router (sin recargar).
+| irA('/login') navega con el Router, sin recargar la página.
 */
 
 let router: Router | null = null;
@@ -21,7 +20,7 @@ export function irA(destino: string, reemplazar = false): void {
   const url = new URL(destino, window.location.origin);
   const mismaRuta = url.pathname === window.location.pathname;
 
-  // Misma ruta (solo cambia ?q= o ?categoria=): recarga como en el proyecto viejo.
+  // Misma ruta (solo cambia ?q= o ?categoria=): recarga la página.
   if (!router || mismaRuta) {
     if (reemplazar) window.location.replace(url.href);
     else window.location.assign(url.href);
@@ -31,7 +30,7 @@ export function irA(destino: string, reemplazar = false): void {
   router.navigateByUrl(url.pathname + url.search + url.hash, { replaceUrl: reemplazar });
 }
 
-/** Antes: document.addEventListener('DOMContentLoaded', fn). Ahora la página ya está pintada. */
+/** Ejecuta fn de inmediato: cuando corre la lógica de la página, el HTML ya está pintado. */
 export function alCargar(fn: () => void): void {
   fn();
 }

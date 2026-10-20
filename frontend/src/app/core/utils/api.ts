@@ -25,7 +25,7 @@ interface Opciones {
 const CODIGOS_SESION_INVALIDA = ['TOKEN_REQUERIDO', 'TOKEN_INVALIDO', 'TOKEN_FORMATO_INVALIDO', 'CUENTA_NO_DISPONIBLE'];
 
 export async function apiFetch<T = any>(ruta: string, opciones: Opciones = {}): Promise<T> {
-  const url = new URL(API_URL + ruta);
+  const url = new URL(API_URL + ruta, window.location.origin);
 
   Object.entries(opciones.query ?? {}).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));

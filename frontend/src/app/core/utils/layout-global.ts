@@ -1,6 +1,6 @@
 // @ts-nocheck
-// Migrado de js/app.js: sesión del header, contador del carrito, menú lateral y notificaciones.
-// iniciarGlobalPublico() reemplaza al antiguo bloque DOMContentLoaded.
+// Funciones comunes de la tienda: sesión del header, contador del carrito, menú lateral y notificaciones.
+// iniciarGlobalPublico() las activa en cada página de la tienda.
 import { alLimpiar, irA, onGlobal } from './navegacion';
 import { limpiarSesionSegura, obtenerSesionSegura } from './auth-storage';
 import { api } from './api';
