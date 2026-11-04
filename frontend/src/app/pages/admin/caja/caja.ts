@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Ticket } from '../../../models/ticket.model';
 import { api, mensajeError } from '../../../core/utils/api';
 import { AgroUI } from '../../../core/utils/agro-ui';
+import { Comprobante } from '../../../shared/comprobante';
+import { imprimirComprobante, imprimirReporte, reporteVentas } from '../../../shared/documentos';
 import { Encabezado } from '../../../shared/encabezado';
 import {
   claseEstadoPedido, descargarCsv, diaISO, fechaHora, hace, soles, textoEstadoPedido, textoVence
@@ -14,7 +16,7 @@ type Metodo = 'Efectivo' | 'Tarjeta' | 'Yape/Plin';
 
 @Component({
   selector: 'app-caja',
-  imports: [FormsModule, Encabezado, Icono, Modal],
+  imports: [FormsModule, Encabezado, Icono, Modal, Comprobante],
   templateUrl: './caja.html'
 })
 export class Caja implements OnDestroy {
@@ -188,8 +190,13 @@ export class Caja implements OnDestroy {
     }
   }
 
-  protected imprimir(): void {
-    window.print();
+  protected imprimirVoucher(): void {
+    const v = this.voucher();
+    if (v) imprimirComprobante(v);
+  }
+
+  protected imprimirReporte(): void {
+    imprimirReporte(reporteVentas(this.ventas(), 'Módulo de Caja', this.desde(), this.hasta()));
   }
 
   // ----------------------------------------------------------- historial

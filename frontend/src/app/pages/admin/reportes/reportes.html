@@ -1,7 +1,7 @@
 <ap-encabezado titulo="Reportes" subtitulo="Analiza ventas, compras, productos, clientes e inventario">
   <button type="button" class="ap-btn ap-btn-suave ap-no-imprimir" (click)="exportarVentas()" [disabled]="!r()"><ap-icono nombre="descargar" /> Ventas CSV</button>
   <button type="button" class="ap-btn ap-btn-suave ap-no-imprimir" (click)="exportarProductos()" [disabled]="!r()"><ap-icono nombre="descargar" /> Productos CSV</button>
-  <button type="button" class="ap-btn ap-btn-primario ap-no-imprimir" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir / PDF</button>
+  <button type="button" class="ap-btn ap-btn-primario ap-no-imprimir" (click)="imprimir()" [disabled]="!r()"><ap-icono nombre="imprimir" /> Imprimir / PDF</button>
 </ap-encabezado>
 
 <div class="ap-card ap-mb ap-no-imprimir">

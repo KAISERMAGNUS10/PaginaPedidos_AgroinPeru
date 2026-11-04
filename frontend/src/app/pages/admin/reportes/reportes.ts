@@ -1,6 +1,7 @@
 import { Component, afterNextRender, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { api, mensajeError } from '../../../core/utils/api';
+import { imprimirReporte, reporteGeneral } from '../../../shared/documentos';
 import { Encabezado } from '../../../shared/encabezado';
 import { descargarCsv, diaISO, etiquetaMetodo, numero, plural, soles, solesCorto, textoEstadoPedido } from '../../../shared/formato';
 import { BarrasLista, GraficoBarras, GraficoLinea, PuntoGrafico } from '../../../shared/graficos';
@@ -105,6 +106,7 @@ export class Reportes {
   }
 
   protected imprimir(): void {
-    window.print();
+    const d = this.r();
+    if (d) imprimirReporte(reporteGeneral(d));
   }
 }

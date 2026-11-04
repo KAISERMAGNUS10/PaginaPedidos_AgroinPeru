@@ -103,7 +103,7 @@
         <button type="button" class="ap-btn ap-btn-primario" (click)="cargarHistorial()">Filtrar</button>
         <div class="ap-acciones" style="margin-left: auto">
           <button type="button" class="ap-btn ap-btn-suave" [disabled]="!historial()?.pedidos?.length" (click)="exportar()"><ap-icono nombre="descargar" /> CSV</button>
-          <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+          <button type="button" class="ap-btn ap-btn-suave" [disabled]="!historial()?.pedidos?.length" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
         </div>
       </div>
       @if (cargandoHist()) {
@@ -199,20 +199,6 @@
 </ap-modal>
 
 <!-- ============ Detalle historial ============ -->
-<ap-modal [abierto]="detalleHist() !== null" [titulo]="'Pedido ' + (detalleHist()?.id ?? '')" (cerrar)="detalleHist.set(null)">
-  @if (detalleHist(); as t) {
-    <div class="cj-datos" style="padding: 0 0 14px">
-      <div><small>Cliente</small><strong>{{ t.nombreFacturacion }}</strong></div>
-      <div><small>{{ t.documentoTipo }}</small><strong>{{ t.documentoNumero }}</strong></div>
-      <div><small>Recogió</small><strong>{{ t.personaAutorizada ? t.personaAutorizada.nombre + ' · DNI ' + t.personaAutorizada.dni : 'Titular' }}</strong></div>
-      <div><small>Entregado</small><strong>{{ fechaHora(t.fechaEntrega) }}</strong></div>
-    </div>
-    <ul class="pk-mini-lista" style="border-top: 0; padding-top: 0">
-      @for (p of t.productos; track p.id) { <li><span>{{ p.nombre }}</span><strong>×{{ p.cantidad }}</strong></li> }
-    </ul>
-  }
-  <div pie>
-    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
-    <button type="button" class="ap-btn ap-btn-primario" (click)="detalleHist.set(null)">Cerrar</button>
-  </div>
-</ap-modal>
+@if (detalleHist(); as t) {
+  <ap-comprobante [venta]="t" (cerrar)="detalleHist.set(null)" />
+}

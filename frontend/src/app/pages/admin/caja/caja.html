@@ -171,7 +171,7 @@
       <button type="button" class="ap-btn ap-btn-primario" (click)="cargarVentas()">Filtrar</button>
       <div class="ap-acciones" style="margin-left: auto">
         <button type="button" class="ap-btn ap-btn-suave" [disabled]="ventas().length === 0" (click)="exportar()"><ap-icono nombre="descargar" /> CSV</button>
-        <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+        <button type="button" class="ap-btn ap-btn-suave" [disabled]="ventas().length === 0" (click)="imprimirReporte()"><ap-icono nombre="imprimir" /> Imprimir</button>
       </div>
     </div>
 
@@ -220,32 +220,12 @@
     <div class="cj-voucher-fila"><span>Fecha</span><strong>{{ fechaHora(v.fechaPago) }}</strong></div>
   }
   <div pie>
-    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
+    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimirVoucher()"><ap-icono nombre="imprimir" /> Imprimir comprobante</button>
     <button type="button" class="ap-btn ap-btn-primario" (click)="voucher.set(null)">Listo, siguiente cliente</button>
   </div>
 </ap-modal>
 
 <!-- ============ Detalle de venta (historial) ============ -->
-<ap-modal [abierto]="detalle() !== null" [titulo]="'Venta ' + (detalle()?.comprobante ?? '')" [ancho]="true" (cerrar)="detalle.set(null)">
-  @if (detalle(); as v) {
-    <div class="cj-datos" style="padding: 0 0 16px">
-      <div><small>Ticket</small><strong class="ap-mono">{{ v.id }}</strong></div>
-      <div><small>Cliente</small><strong>{{ v.nombreFacturacion }}</strong></div>
-      <div><small>{{ v.documentoTipo }}</small><strong>{{ v.documentoNumero }}</strong></div>
-      <div><small>Pagado</small><strong>{{ fechaHora(v.fechaPago) }}</strong></div>
-      <div><small>Método</small><strong>{{ v.metodoPago }}{{ v.numOperacion ? ' · Op. ' + v.numOperacion : '' }}</strong></div>
-      <div><small>Estado</small><span [class]="'ap-badge ' + claseEstado(v.estado)">{{ textoEstado(v.estado) }}</span></div>
-    </div>
-    <div class="ap-tabla-wrap">
-      <table class="ap-tabla">
-        <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Subtotal</th></tr></thead>
-        <tbody>@for (p of v.productos; track p.id) { <tr><td>{{ p.nombre }}</td><td class="num">{{ p.cantidad }}</td><td class="num">{{ soles(p.subtotal) }}</td></tr> }</tbody>
-        <tfoot><tr><td colspan="2">Total</td><td class="num">{{ soles(v.total) }}</td></tr></tfoot>
-      </table>
-    </div>
-  }
-  <div pie>
-    <button type="button" class="ap-btn ap-btn-suave" (click)="imprimir()"><ap-icono nombre="imprimir" /> Imprimir</button>
-    <button type="button" class="ap-btn ap-btn-primario" (click)="detalle.set(null)">Cerrar</button>
-  </div>
-</ap-modal>
+@if (detalle(); as v) {
+  <ap-comprobante [venta]="v" (cerrar)="detalle.set(null)" />
+}

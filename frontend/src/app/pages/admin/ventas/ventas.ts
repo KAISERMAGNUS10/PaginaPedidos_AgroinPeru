@@ -1,12 +1,13 @@
 import { Component, afterNextRender, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { api, mensajeError } from '../../../core/utils/api';
+import { Comprobante } from '../../../shared/comprobante';
+import { imprimirReporte, reporteVentas } from '../../../shared/documentos';
 import { Encabezado } from '../../../shared/encabezado';
 import {
   claseEstadoPedido, descargarCsv, diaISO, fechaHora, soles, textoEstadoPedido
 } from '../../../shared/formato';
 import { Icono } from '../../../shared/icono';
-import { Modal } from '../../../shared/modal';
 
 interface Venta {
   id: string;
@@ -37,7 +38,7 @@ interface Venta {
 
 @Component({
   selector: 'app-ventas',
-  imports: [FormsModule, Encabezado, Icono, Modal],
+  imports: [FormsModule, Encabezado, Icono, Comprobante],
   templateUrl: './ventas.html'
 })
 export class Ventas {
@@ -100,6 +101,6 @@ export class Ventas {
   }
 
   protected imprimir(): void {
-    window.print();
+    imprimirReporte(reporteVentas(this.visibles(), 'Administración', this.desde(), this.hasta()));
   }
 }

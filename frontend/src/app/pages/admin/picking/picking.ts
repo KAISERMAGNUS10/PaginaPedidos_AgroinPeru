@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { Ticket } from '../../../models/ticket.model';
 import { api, mensajeError } from '../../../core/utils/api';
 import { AgroUI } from '../../../core/utils/agro-ui';
+import { Comprobante } from '../../../shared/comprobante';
+import { imprimirReporte, reporteEntregas } from '../../../shared/documentos';
 import { Encabezado } from '../../../shared/encabezado';
 import { descargarCsv, diaISO, fechaHora, hace, horasRestantes, soles, textoVence } from '../../../shared/formato';
 import { Icono } from '../../../shared/icono';
@@ -18,7 +20,7 @@ interface Historial {
 
 @Component({
   selector: 'app-picking',
-  imports: [FormsModule, Encabezado, Icono, Modal],
+  imports: [FormsModule, Encabezado, Icono, Modal, Comprobante],
   templateUrl: './picking.html'
 })
 export class Picking implements OnDestroy {
@@ -210,6 +212,7 @@ export class Picking implements OnDestroy {
   }
 
   protected imprimir(): void {
-    window.print();
+    const h = this.historial();
+    if (h) imprimirReporte(reporteEntregas(h.pedidos, h.totalUnidades, this.desde(), this.hasta()));
   }
 }

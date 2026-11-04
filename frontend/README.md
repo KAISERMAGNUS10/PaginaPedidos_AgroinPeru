@@ -38,6 +38,11 @@ mis pedidos (cancelar, persona autorizada), notificaciones de "pedido listo".
 **Almacenero (`/admin/picking`):** tarjetas de pedidos por preparar con checklist, pedidos por entregar
 (con la persona autorizada) e historial de entregas.
 
+**Documentos impresos (Administrador, Cajero y Almacenero):** al abrir una venta se ve la boleta o factura
+con el formato de la empresa y el botón "Imprimir / Exportar PDF"; los botones "Imprimir" de los listados
+generan un reporte con logo, rango de fechas y totales. Los datos de la empresa (RUC, dirección, cuentas)
+están en `src/app/shared/documentos.ts`.
+
 ## Estructura útil
 
 ```
