@@ -133,8 +133,8 @@ export function montoEnLetras(monto: number): string {
 const ESTILOS_BASE = `
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  html, body { margin: 0; padding: 0; background: #fff; }
-  body { font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; font-size: 12.5px; }
+  html { background: #fff; }
+  body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #1a1a1a; font-size: 12.5px; }
   .hoja { width: 100%; border-collapse: collapse; }
   .hoja > thead > tr > td, .hoja > tfoot > tr > td, .hoja > tbody > tr > td { padding: 0; }
   .espacio { height: 12mm; }
@@ -162,7 +162,18 @@ function pagina(titulo: string, estilos: string, cuerpo: string): string {
 /* Boleta / factura                                                    */
 /* ------------------------------------------------------------------ */
 
+/** Marca de agua del comprobante: PAGADO en Caja y ENTREGADO en Almacén. */
+export type MarcaAgua = 'PAGADO' | 'ENTREGADO';
+
 const ESTILOS_COMPROBANTE = `
+  /* Queda detrás del contenido y, al imprimir, se repite centrada en cada página. */
+  .marca-agua {
+    position: fixed; top: 50%; left: 50%; z-index: -1;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-weight: bold; letter-spacing: 6px; white-space: nowrap; color: #dce8f6;
+  }
+  .marca-agua.PAGADO { font-size: 150px; }
+  .marca-agua.ENTREGADO { font-size: 108px; }
   .cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 10px; }
   .cab .logo { width: 120px; height: 165px; }
   .caja-ruc { border: 2px solid #333; border-radius: 3px; text-align: center; min-width: 260px; }
@@ -205,7 +216,7 @@ export function tituloComprobante(v: VentaDocumento): string {
   return `${v.tipoComprobante === 'factura' ? 'Factura' : 'Boleta'} ${v.comprobante ?? v.id}`;
 }
 
-export function htmlComprobante(v: VentaDocumento): string {
+export function htmlComprobante(v: VentaDocumento, marca?: MarcaAgua): string {
   const tipo = v.tipoComprobante === 'factura' ? 'FACTURA ELECTRÓNICA' : 'BOLETA DE VENTA ELECTRÓNICA';
   const operacion = v.numOperacion ? ` · Op. ${v.numOperacion}` : '';
 
@@ -223,6 +234,7 @@ export function htmlComprobante(v: VentaDocumento): string {
   ).join('');
 
   return pagina(tituloComprobante(v), ESTILOS_COMPROBANTE, `
+    ${marca ? `<div class="marca-agua ${marca}" aria-hidden="true">${marca}</div>` : ''}
     <div class="cab">
       <img class="logo" src="${esc(urlLogo())}" alt="${esc(EMPRESA.razonSocial)}">
       <div class="caja-ruc">
@@ -508,6 +520,6 @@ export function imprimirReporte(r: DatosReporte): void {
   imprimirHtml(htmlReporte(r), tituloReporte(r));
 }
 
-export function imprimirComprobante(v: VentaDocumento): void {
-  imprimirHtml(htmlComprobante(v), tituloComprobante(v));
+export function imprimirComprobante(v: VentaDocumento, marca?: MarcaAgua): void {
+  imprimirHtml(htmlComprobante(v, marca), tituloComprobante(v));
 }

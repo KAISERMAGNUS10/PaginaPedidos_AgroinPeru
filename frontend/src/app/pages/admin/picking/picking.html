@@ -200,5 +200,5 @@
 
 <!-- ============ Detalle historial ============ -->
 @if (detalleHist(); as t) {
-  <ap-comprobante [venta]="t" (cerrar)="detalleHist.set(null)" />
+  <ap-comprobante [venta]="t" marca="ENTREGADO" (cerrar)="detalleHist.set(null)" />
 }

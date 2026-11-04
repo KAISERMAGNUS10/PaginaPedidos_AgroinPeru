@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { VentaDocumento, htmlComprobante, imprimirMarco, tituloComprobante } from './documentos';
+import { MarcaAgua, VentaDocumento, htmlComprobante, imprimirMarco, tituloComprobante } from './documentos';
 import { claseEstadoPedido, fechaHora, soles, textoEstadoPedido } from './formato';
 import { Icono } from './icono';
 
@@ -24,15 +24,17 @@ import { Icono } from './icono';
         <div class="ap-modal-cuerpo">
           <iframe #marco class="documento" [title]="titulo()" [srcdoc]="html()" (load)="alCargar()"></iframe>
 
-          <div class="interna">
-            <h4>Información interna (no forma parte del comprobante)</h4>
-            <div class="cj-datos" style="padding: 0; border-bottom: 0">
-              <div><small>Estado</small><span [class]="'ap-badge ' + claseEstado(venta().estado)">{{ textoEstado(venta().estado) }}</span></div>
-              @for (d of datos(); track d.etiqueta) {
-                <div><small>{{ d.etiqueta }}</small><strong>{{ d.valor }}</strong></div>
-              }
+          @if (informacionInterna()) {
+            <div class="interna">
+              <h4>Información interna (no forma parte del comprobante)</h4>
+              <div class="cj-datos" style="padding: 0; border-bottom: 0">
+                <div><small>Estado</small><span [class]="'ap-badge ' + claseEstado(venta().estado)">{{ textoEstado(venta().estado) }}</span></div>
+                @for (d of datos(); track d.etiqueta) {
+                  <div><small>{{ d.etiqueta }}</small><strong>{{ d.valor }}</strong></div>
+                }
+              </div>
             </div>
-          </div>
+          }
         </div>
       </div>
     </div>
@@ -45,6 +47,10 @@ import { Icono } from './icono';
 })
 export class Comprobante {
   venta = input.required<VentaDocumento>();
+  /** Marca de agua del documento: PAGADO en Caja, ENTREGADO en Almacén. */
+  marca = input<MarcaAgua>();
+  /** Muestra debajo del documento los datos que no salen impresos (solo Administración). */
+  informacionInterna = input(false);
   cerrar = output<void>();
 
   private sanitizer = inject(DomSanitizer);
@@ -56,7 +62,7 @@ export class Comprobante {
 
   protected titulo = computed(() => tituloComprobante(this.venta()));
   // htmlComprobante escapa todos los datos de la venta antes de armar el documento.
-  protected html = computed(() => this.sanitizer.bypassSecurityTrustHtml(htmlComprobante(this.venta())));
+  protected html = computed(() => this.sanitizer.bypassSecurityTrustHtml(htmlComprobante(this.venta(), this.marca())));
 
   protected datos = computed(() => {
     const v = this.venta();

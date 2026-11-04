@@ -57,5 +57,5 @@
 </div>
 
 @if (detalle(); as v) {
-  <ap-comprobante [venta]="v" (cerrar)="detalle.set(null)" />
+  <ap-comprobante [venta]="v" [informacionInterna]="true" (cerrar)="detalle.set(null)" />
 }

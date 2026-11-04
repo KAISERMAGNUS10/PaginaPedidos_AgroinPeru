@@ -192,7 +192,7 @@ export class Caja implements OnDestroy {
 
   protected imprimirVoucher(): void {
     const v = this.voucher();
-    if (v) imprimirComprobante(v);
+    if (v) imprimirComprobante(v, 'PAGADO');
   }
 
   protected imprimirReporte(): void {

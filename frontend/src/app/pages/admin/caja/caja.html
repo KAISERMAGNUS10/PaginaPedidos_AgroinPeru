@@ -227,5 +227,5 @@
 
 <!-- ============ Detalle de venta (historial) ============ -->
 @if (detalle(); as v) {
-  <ap-comprobante [venta]="v" (cerrar)="detalle.set(null)" />
+  <ap-comprobante [venta]="v" marca="PAGADO" (cerrar)="detalle.set(null)" />
 }
