@@ -6,7 +6,7 @@
    antes de pintar la página para que no parpadee.
    ========================================================================== */
 :root {
-  color-scheme: light;
+  color-scheme: only light;
   --fondo: #f4f6f8;
   --sup: #ffffff;
   --sup-2: #f6f8fa;

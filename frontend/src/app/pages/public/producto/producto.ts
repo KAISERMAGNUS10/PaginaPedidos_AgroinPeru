@@ -5,7 +5,8 @@ import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar, irA } from '../../../core/utils/navegacion';
 import { cargarProducto } from '../../../core/data/catalogo-data';
-import { guardarCarrito, leerCarrito } from '../../../core/utils/carrito-store';
+import { fijarCantidadCarrito, guardarCarrito, leerCantidadEscrita, leerCarrito } from '../../../core/utils/carrito-store';
+import { AgroUI } from '../../../core/utils/agro-ui';
 import { conAviso } from '../../../core/utils/precarga';
 import { actualizarContadorCarrito } from '../../../core/utils/layout-global';
 import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
@@ -85,16 +86,16 @@ function pintarDetalleProducto() {
 }
 
 function renderizarCarritoDetalle() {
-    const btnInitial = document.getElementById('btn-add-main');
+        const btnInitial = document.getElementById('detalle-agregar');
     const qtyControl = document.getElementById('qty-control-main');
-    const qtyVal = document.getElementById('qty-val-main');
+        const qtyVal = document.getElementById('qty-input-main');
     const btnMenos = document.getElementById('btn-menos');
     const item = carritoProducto[productoActual.id];
 
     if (item && item.qty > 0) {
         btnInitial.style.display = 'none';
         qtyControl.style.display = 'flex';
-        qtyVal.textContent = `${item.qty} un`;
+                if (document.activeElement !== qtyVal) qtyVal.value = String(item.qty);
 
         const unidad = item.qty === 1;
         btnMenos.classList.toggle('trash', unidad);
@@ -108,12 +109,30 @@ function renderizarCarritoDetalle() {
     if (typeof actualizarContadorCarrito === 'function') actualizarContadorCarrito();
 }
 
+/** Avisa si se pide más de lo que hay en stock. */
+function superaStock(cantidad) {
+    const stock = productoActual.stock;
+    if (Number.isFinite(stock) && stock > 0 && cantidad > stock) {
+        AgroUI.toast(`Solo hay ${stock} unidades disponibles de este producto.`, 'warning', 'Stock limitado');
+        return true;
+    }
+    return false;
+}
+
+/** Agrega la cantidad escrita en "Cantidad" (por defecto 1). */
 function agregarProductoActual() {
+    const campo = document.getElementById('cantidad-inicial');
+    const leida = leerCantidadEscrita(campo?.value, productoActual.stock);
+    const cantidad = Math.max(leida?.cantidad ?? 1, 1);
+    if (leida?.recortada) AgroUI.toast(`Solo hay ${leida.recortada} unidades disponibles de este producto.`, 'warning', 'Stock limitado');
+    if (campo) campo.value = '1';
+
     if (!carritoProducto[productoActual.id]) {
         carritoProducto[productoActual.id] = {
             nombre: productoActual.nombreCompleto,
             precio: productoActual.precio,
-            qty: 1,
+                        qty: cantidad,
+            stock: productoActual.stock,
             imagen: productoActual.imagen,
             medida: productoActual.medida,
             cantidadCaja: productoActual.cantidadCaja,
@@ -122,15 +141,30 @@ function agregarProductoActual() {
             subcategoria: productoActual.subcategoria
         };
     } else {
-        carritoProducto[productoActual.id].qty++;
+                const nueva = carritoProducto[productoActual.id].qty + cantidad;
+        if (superaStock(nueva)) return;
+        carritoProducto[productoActual.id].qty = nueva;
     }
 
     guardarCarrito(carritoProducto);
     renderizarCarritoDetalle();
 }
 
+/** La persona escribió la cantidad en el carrito (0 = quitar). */
+function escribirCantidadActual(campo) {
+    const item = carritoProducto[productoActual.id];
+    if (!item) return;
+    const leida = leerCantidadEscrita(campo.value, productoActual.stock);
+    if (!leida) { campo.value = String(item.qty); return; }
+    if (leida.recortada) AgroUI.toast(`Solo hay ${leida.recortada} unidades disponibles de este producto.`, 'warning', 'Stock limitado');
+    fijarCantidadCarrito(carritoProducto, productoActual.id, leida.cantidad);
+    guardarCarrito(carritoProducto);
+    renderizarCarritoDetalle();
+}
+
 function modificarQtyActual(cambio) {
     if (!carritoProducto[productoActual.id]) return;
+    if (cambio > 0 && superaStock(carritoProducto[productoActual.id].qty + cambio)) return;
     carritoProducto[productoActual.id].qty += cambio;
     if (carritoProducto[productoActual.id].qty <= 0) delete carritoProducto[productoActual.id];
     guardarCarrito(carritoProducto);
@@ -141,7 +175,15 @@ alCargar(() => {
     pintarDetalleProducto();
     document.getElementById('btn-add-main').addEventListener('click', agregarProductoActual);
     document.getElementById('btn-menos').addEventListener('click', () => modificarQtyActual(-1));
-    document.getElementById('btn-mas').addEventListener('click', () => modificarQtyActual(1));
+        document.getElementById('btn-mas').addEventListener('click', () => modificarQtyActual(1));
+    // Cantidad escrita a mano: se aplica al salir del campo o con Enter.
+    const campoCarrito = document.getElementById('qty-input-main');
+    campoCarrito.addEventListener('change', () => escribirCantidadActual(campoCarrito));
+    campoCarrito.addEventListener('focus', () => campoCarrito.select());
+    campoCarrito.addEventListener('keydown', e => { if (e.key === 'Enter') campoCarrito.blur(); });
+    const campoInicial = document.getElementById('cantidad-inicial');
+    campoInicial.addEventListener('focus', () => campoInicial.select());
+    campoInicial.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); agregarProductoActual(); } });
     // Vuelve a la misma página y filtros del catálogo de donde vino.
     document.getElementById('link-volver-catalogo').addEventListener('click', event => {
         event.preventDefault();

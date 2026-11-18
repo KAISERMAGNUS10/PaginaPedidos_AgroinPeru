@@ -27,10 +27,19 @@
             </div>
 
             <div class="cart-controls detalle-carrito">
-                <button class="btn-add-initial" id="btn-add-main" type="button">Agregar al carrito</button>
+                <div class="detalle-agregar" id="detalle-agregar">
+                    <label class="detalle-cantidad">
+                        <span>Cantidad</span>
+                        <input id="cantidad-inicial" type="number" inputmode="numeric" min="1" max="999" value="1">
+                    </label>
+                    <button class="btn-add-initial" id="btn-add-main" type="button">Agregar al carrito</button>
+                </div>
                 <div class="qty-control" id="qty-control-main" style="display: none;">
                     <button class="qty-btn" id="btn-menos" type="button" aria-label="Quitar uno">−</button>
-                    <span class="qty-val" id="qty-val-main">1 un</span>
+                    <label class="qty-campo">
+                        <input class="qty-input" id="qty-input-main" type="number" inputmode="numeric" min="0" max="999" value="1" aria-label="Cantidad en el carrito">
+                        <span>un</span>
+                    </label>
                     <button class="qty-btn" id="btn-mas" type="button" aria-label="Agregar uno">+</button>
                 </div>
             </div>

@@ -2,8 +2,8 @@
 |--------------------------------------------------------------------------
 | Tema claro / oscuro
 |--------------------------------------------------------------------------
-| El tema elegido se guarda en localStorage. Si la persona nunca eligió,
-| se usa el del sistema (celular o Windows en modo oscuro → página oscura).
+| La página empieza en claro; el modo oscuro solo se activa con el botón
+| (sol / luna) y queda guardado en localStorage.
 | index.html aplica el tema antes de pintar para evitar el parpadeo.
 */
 import { signal } from '@angular/core';

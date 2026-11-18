@@ -195,3 +195,29 @@
     .controls-wrapper { justify-content: space-between; padding-left: 74px; gap: 10px; }
     .item-price { order: 3; min-width: 0; }
 }
+
+/* Cantidad escrita a mano */
+.qty-controls .qty-campo { display: inline-flex; align-items: baseline; gap: 2px; padding: 0 2px; color: var(--muted); font-size: 12.5px; }
+.qty-controls .qty-input {
+    width: 3em;
+    height: 28px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--txt);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+.qty-controls .qty-input::-webkit-outer-spin-button,
+.qty-controls .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.qty-controls .qty-input:hover { border-color: var(--borde-fuerte); }
+.qty-controls .qty-input:focus { outline: none; border-color: var(--acento); background: var(--sup-2); }
+.qty-controls .qty-campo span { min-width: 0; color: var(--muted); font-size: 12px; font-weight: 500; }
+:root[data-tema="oscuro"] .qty-controls .qty-input { background: transparent; border-color: transparent; }
+:root[data-tema="oscuro"] .qty-controls .qty-input:focus { border-color: var(--acento); background: var(--sup-2); }
+.item-price { white-space: nowrap; }

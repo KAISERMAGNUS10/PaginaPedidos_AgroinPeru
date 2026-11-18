@@ -33,6 +33,32 @@ function empujarAlServidor(carrito) {
     }, 500);
 }
 
+/** Máximo que se puede escribir en el campo de cantidad (el backend valida además el stock). */
+export const CANTIDAD_MAXIMA = 999;
+
+/**
+ * Lee la cantidad que la persona escribió: entero entre 0 y el máximo (o el stock, si se conoce).
+ * Devuelve { cantidad, recortada } o null si no escribió un número.
+ */
+export function leerCantidadEscrita(valor, stock?) {
+    const n = parseInt(String(valor ?? '').replace(/[^\d]/g, ''), 10);
+    if (Number.isNaN(n)) return null;
+    const tope = Math.min(CANTIDAD_MAXIMA, Number.isFinite(stock) && stock > 0 ? stock : CANTIDAD_MAXIMA);
+    return { cantidad: Math.min(Math.max(n, 0), tope), recortada: n > tope ? tope : null };
+}
+
+/** Pone la cantidad exacta de un producto en el carrito (0 = lo quita). */
+export function fijarCantidadCarrito(carrito, id, cantidad) {
+    if (!carrito[id]) return carrito;
+    if (cantidad <= 0) {
+        delete carrito[id];
+    } else {
+        carrito[id].qty = cantidad;
+        if (carrito[id].cantidad !== undefined) carrito[id].cantidad = cantidad;
+    }
+    return carrito;
+}
+
 export function guardarCarrito(carrito) {
     localStorage.setItem(CLAVE, JSON.stringify(carrito));
     empujarAlServidor(carrito);

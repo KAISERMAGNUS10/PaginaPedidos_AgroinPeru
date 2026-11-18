@@ -7,15 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Catálogo de válvulas, conexiones, aspersores y mangueras de AGROINPERU S.A.C. Pide en línea y recoge en tienda.">
   <meta name="theme-color" content="#0f4782">
+  <!-- "only light": el navegador del celular no debe oscurecer la página por su cuenta. -->
+  <meta name="color-scheme" content="only light">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script>
-    // Aplica el tema guardado (o el del sistema) antes de pintar la página.
+    // La página siempre empieza en modo claro. Solo se ve oscura si la persona
+    // pulsó el botón de modo oscuro (se guarda en localStorage).
     (function () {
-      var tema = null;
-      try { tema = localStorage.getItem('agro_tema'); } catch (e) {}
-      if (tema !== 'claro' && tema !== 'oscuro') {
-        tema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
-      }
+      var tema = 'claro';
+      try { if (localStorage.getItem('agro_tema') === 'oscuro') tema = 'oscuro'; } catch (e) {}
       document.documentElement.setAttribute('data-tema', tema);
     })();
   </script>

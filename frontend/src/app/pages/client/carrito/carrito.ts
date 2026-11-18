@@ -5,7 +5,8 @@ import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar, irA } from '../../../core/utils/navegacion';
 import { obtenerSesionSegura } from '../../../core/utils/auth-storage';
-import { guardarCarrito, leerCarrito } from '../../../core/utils/carrito-store';
+import { fijarCantidadCarrito, guardarCarrito, leerCantidadEscrita, leerCarrito } from '../../../core/utils/carrito-store';
+import { AgroUI } from '../../../core/utils/agro-ui';
 import { actualizarContadorCarrito } from '../../../core/utils/layout-global';
 import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
@@ -36,7 +37,8 @@ export class Carrito implements OnDestroy {
     this.limpiar?.();
     if (typeof window !== 'undefined') {
       delete (window as any).eliminarProducto;
-      delete (window as any).modificarCantidad;
+            delete (window as any).modificarCantidad;
+      delete (window as any).escribirCantidad;
     }
   }
 }
@@ -101,7 +103,7 @@ function iniciarCarrito() {
                                 
                                 <div class="qty-controls">
                                     <button type="button" onclick="modificarCantidad('${id}', -1)" aria-label="Quitar uno">−</button>
-                                    <span>${cantidad} un</span>
+                                    <label class="qty-campo"><input class="qty-input" type="number" inputmode="numeric" min="0" max="999" value="${cantidad}" aria-label="Cantidad" onchange="escribirCantidad('${id}', this)" onfocus="this.select()" onkeydown="if (event.key === 'Enter') this.blur()"><span>un</span></label>
                                     <button type="button" onclick="modificarCantidad('${id}', 1)" aria-label="Agregar uno">+</button>
                                 </div>
                                 
@@ -130,6 +132,11 @@ function iniciarCarrito() {
             if (carritoLocal[id]) {
                 let cantidadActual = carritoLocal[id].cantidad !== undefined ? carritoLocal[id].cantidad : (carritoLocal[id].qty !== undefined ? carritoLocal[id].qty : 1);
                 let nuevaCantidad = cantidadActual + cambio;
+                const stock = carritoLocal[id].stock;
+                if (cambio > 0 && Number.isFinite(stock) && stock > 0 && nuevaCantidad > stock) {
+                    AgroUI.toast(`Solo hay ${stock} unidades disponibles de este producto.`, 'warning', 'Stock limitado');
+                    return;
+                }
 
                 if (nuevaCantidad <= 0) {
                     delete carritoLocal[id];
@@ -141,6 +148,24 @@ function iniciarCarrito() {
                 guardarCarrito(carritoLocal);
                 renderizarCarritoPagina();
             }
+        };
+
+                // CANTIDAD ESCRITA A MANO (0 = quitar del carrito)
+        window.escribirCantidad = function(id, campo) {
+            let carritoLocal = leerCarrito();
+            const item = carritoLocal[id];
+            if (!item) return;
+            const leida = leerCantidadEscrita(campo.value, item.stock);
+            if (!leida) {
+                campo.value = String(item.qty ?? item.cantidad ?? 1);
+                return;
+            }
+            if (leida.recortada) {
+                AgroUI.toast(`Solo hay ${leida.recortada} unidades disponibles de este producto.`, 'warning', 'Stock limitado');
+            }
+            fijarCantidadCarrito(carritoLocal, id, leida.cantidad);
+            guardarCarrito(carritoLocal);
+            renderizarCarritoPagina();
         };
 
         // ELIMINA EL PRODUCTO COMPLETAMENTE

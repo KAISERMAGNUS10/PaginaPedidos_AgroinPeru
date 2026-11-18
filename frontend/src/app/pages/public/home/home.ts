@@ -5,7 +5,8 @@ import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angul
 import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, onGlobal, alLimpiar, type Limpiador } from '../../../core/utils/navegacion';
 import { cargarCategorias, cargarPaginaCatalogo } from '../../../core/data/catalogo-data';
-import { guardarCarrito, leerCarrito } from '../../../core/utils/carrito-store';
+import { fijarCantidadCarrito, guardarCarrito, leerCantidadEscrita, leerCarrito } from '../../../core/utils/carrito-store';
+import { AgroUI } from '../../../core/utils/agro-ui';
 import { mensajeError } from '../../../core/utils/api';
 import { actualizarContadorCarrito, iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
@@ -112,7 +113,7 @@ function tarjeta(producto) {
                 <button class="btn-add-initial" type="button" data-cart-action="add" data-id="${id}">Agregar al carrito</button>
                 <div class="qty-control" style="display:none;">
                     <button class="qty-btn trash" type="button" data-cart-action="minus" data-id="${id}" aria-label="Quitar uno">${ICONO_PAPELERA}</button>
-                    <span class="qty-val">1 un</span>
+                    <label class="qty-campo"><input class="qty-input" type="number" inputmode="numeric" min="0" max="999" value="1" data-id="${id}" aria-label="Cantidad de ${escaparHtml(producto.nombreCompleto)}"><span>un</span></label>
                     <button class="qty-btn" type="button" data-cart-action="plus" data-id="${id}" aria-label="Agregar uno">+</button>
                 </div>
             </div>
@@ -148,7 +149,8 @@ function renderizarCarrito() {
         if (item && item.qty > 0) {
             btnInitial.style.display = 'none';
             qtyControl.style.display = 'flex';
-            card.querySelector('.qty-val').textContent = `${item.qty} un`;
+            const campo = card.querySelector('.qty-input');
+            if (document.activeElement !== campo) campo.value = String(item.qty);
             const unidad = item.qty === 1;
             btnMenos.classList.toggle('trash', unidad);
             btnMenos.innerHTML = unidad ? ICONO_PAPELERA : '−';
@@ -173,18 +175,43 @@ function agregarProducto(id) {
             medida: producto.medida,
             cantidadCaja: producto.cantidadCaja,
             cantidadBolsa: producto.cantidadBolsa,
-            categoria: producto.categoria,
-            subcategoria: producto.subcategoria
+                        categoria: producto.categoria,
+            subcategoria: producto.subcategoria,
+            stock: producto.stock
         };
     } else {
+        if (superaStock(id, carritoLocal[id].qty + 1)) return;
         carritoLocal[id].qty++;
     }
     guardarCarrito(carritoLocal);
     renderizarCarrito();
 }
 
+/** La persona escribió la cantidad directamente (0 = quitar del carrito). */
+function escribirCantidad(campo) {
+    const id = campo.dataset.id;
+    if (!carritoLocal[id]) return;
+    const leida = leerCantidadEscrita(campo.value, productosVisibles.get(id)?.stock);
+    if (!leida) { campo.value = String(carritoLocal[id].qty); return; }
+    if (leida.recortada) AgroUI.toast(`Solo hay ${leida.recortada} unidades disponibles de este producto.`, 'warning', 'Stock limitado');
+    fijarCantidadCarrito(carritoLocal, id, leida.cantidad);
+    guardarCarrito(carritoLocal);
+    renderizarCarrito();
+}
+
+/** Avisa si se pide más de lo que hay en stock. */
+function superaStock(id, cantidad) {
+    const stock = productosVisibles.get(id)?.stock ?? carritoLocal[id]?.stock;
+    if (Number.isFinite(stock) && stock > 0 && cantidad > stock) {
+        AgroUI.toast(`Solo hay ${stock} unidades disponibles de este producto.`, 'warning', 'Stock limitado');
+        return true;
+    }
+    return false;
+}
+
 function modificarQty(id, cambio) {
     if (!carritoLocal[id]) return;
+    if (cambio > 0 && superaStock(id, carritoLocal[id].qty + cambio)) return;
     carritoLocal[id].qty += cambio;
     if (carritoLocal[id].qty <= 0) delete carritoLocal[id];
     guardarCarrito(carritoLocal);
@@ -360,6 +387,17 @@ function inicializar() {
         if (cartAction === 'add') agregarProducto(id);
         if (cartAction === 'plus') modificarQty(id, 1);
         if (cartAction === 'minus') modificarQty(id, -1);
+    });
+
+        // Campo de cantidad: se aplica al salir del campo o con Enter; al entrar se selecciona el número.
+    $('product-grid').addEventListener('change', event => {
+        if (event.target.classList.contains('qty-input')) escribirCantidad(event.target);
+    });
+    $('product-grid').addEventListener('keydown', event => {
+        if (event.key === 'Enter' && event.target.classList.contains('qty-input')) event.target.blur();
+    });
+    $('product-grid').addEventListener('focusin', event => {
+        if (event.target.classList.contains('qty-input')) event.target.select();
     });
 
     $('paginacion').addEventListener('click', event => {
