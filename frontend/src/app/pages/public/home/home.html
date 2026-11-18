@@ -6,7 +6,7 @@
         <h1>Válvulas, conexiones, aspersores y mangueras para tu sistema de riego</h1>
         <p class="hero-subtitle">Arma tu pedido en línea y recógelo en tienda. Reservamos el stock por 48 horas y pagas al recoger.</p>
         <ul class="hero-datos">
-            <li><strong>401</strong> productos</li>
+            <li><strong id="hero-total">401</strong> productos</li>
             <li><strong>48 h</strong> de reserva</li>
             <li><strong>IGV</strong> incluido</li>
         </ul>
@@ -40,7 +40,6 @@
         </div>
 
         <div class="filtro-chips" id="category-filter-list" aria-label="Filtrar por categoría"></div>
-        <button type="button" id="btn-clear-filters" hidden></button>
 
         <div class="catalog-empty" id="catalog-empty" hidden>
             <h3>No encontramos productos</h3>
@@ -48,7 +47,9 @@
             <button type="button" id="btn-empty-reset">Ver todo el catálogo</button>
         </div>
 
-        <div class="product-grid" id="product-grid"></div>
+        <div class="product-grid" id="product-grid" aria-live="polite"></div>
+
+        <nav class="paginacion" id="paginacion" aria-label="Páginas del catálogo" hidden></nav>
     </section>
 </main>
 

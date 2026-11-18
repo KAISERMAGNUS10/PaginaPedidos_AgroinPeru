@@ -1,11 +1,10 @@
 // @ts-nocheck
 // Migrado de producto.html + producto.js
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar, irA } from '../../../core/utils/navegacion';
-import { cargarCatalogo, obtenerCategoriasCatalogo, obtenerProductoCatalogo } from '../../../core/data/catalogo-data';
+import { cargarProducto } from '../../../core/data/catalogo-data';
 import { guardarCarrito, leerCarrito } from '../../../core/utils/carrito-store';
 import { conAviso } from '../../../core/utils/precarga';
 import { actualizarContadorCarrito } from '../../../core/utils/layout-global';
@@ -13,7 +12,7 @@ import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
 @Component({
   selector: 'app-producto',
-  imports: [RouterLink, TiendaHeader],
+  imports: [TiendaHeader],
   templateUrl: './producto.html',
   styleUrls: ['./producto.css', '../../../../styles/header.css', '../../../../styles/tienda.css', '../../../../styles/ui-enhancements.css'],
   // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
@@ -27,9 +26,11 @@ export class Producto implements OnDestroy {
   constructor() {
     // El JS original necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
     afterNextRender(() => {
-      conAviso(cargarCatalogo()).then(() => {
+      // Solo se pide este producto (no el catálogo completo).
+      const sku = new URLSearchParams(window.location.search).get('id') || '';
+      conAviso(sku ? cargarProducto(sku) : Promise.reject(new Error('Producto no indicado.'))).then(producto => {
       this.limpiar = ejecutarPagina(() => {
-        iniciarProducto();
+        iniciarProducto(producto || null);
         iniciarGlobalPublico();
       });
       });
@@ -46,14 +47,13 @@ export class Producto implements OnDestroy {
 // ==========================================================================
 const ICONO_PAPELERA = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18 M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6 M10 11v6 M14 11v6 M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
 
-function iniciarProducto() {
-const productoParams = new URLSearchParams(window.location.search);
-const productoId = productoParams.get('id');
-const productoActual = productoId ? obtenerProductoCatalogo(productoId) : null;
+function iniciarProducto(productoActual) {
+
 let carritoProducto = leerCarrito();
 
 if (!productoActual) {
     irA('/');
+    return;
 }
 
 function pintarDetalleProducto() {
@@ -82,15 +82,6 @@ function pintarDetalleProducto() {
 
     document.getElementById('link-whatsapp').href = `https://wa.me/${telefonoEmpresa}?text=${mensajeWa}`;
     document.getElementById('link-email').href = `mailto:${correoEmpresa}?subject=${asuntoCorreo}&body=${cuerpoCorreo}`;
-}
-
-function pintarCategoriasProducto() {
-    const contenedor = document.getElementById('product-category-links');
-    if (!contenedor) return;
-    const categorias = obtenerCategoriasCatalogo();
-    contenedor.innerHTML = categorias.map(categoria => `
-        <a class="product-category-link" href="/?categoria=${encodeURIComponent(categoria)}">${categoria}</a>
-    `).join('');
 }
 
 function renderizarCarritoDetalle() {
@@ -148,10 +139,16 @@ function modificarQtyActual(cambio) {
 
 alCargar(() => {
     pintarDetalleProducto();
-    pintarCategoriasProducto();
     document.getElementById('btn-add-main').addEventListener('click', agregarProductoActual);
     document.getElementById('btn-menos').addEventListener('click', () => modificarQtyActual(-1));
     document.getElementById('btn-mas').addEventListener('click', () => modificarQtyActual(1));
+    // Vuelve a la misma página y filtros del catálogo de donde vino.
+    document.getElementById('link-volver-catalogo').addEventListener('click', event => {
+        event.preventDefault();
+        let destino = '/';
+        try { destino = sessionStorage.getItem('agro_ultimo_catalogo') || '/'; } catch { /* sin almacenamiento */ }
+        irA(destino);
+    });
     renderizarCarritoDetalle();
 });
 

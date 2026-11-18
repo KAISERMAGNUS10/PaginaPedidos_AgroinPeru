@@ -1,7 +1,7 @@
 import { Component, ViewEncapsulation, afterNextRender, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Icono } from './icono';
-import { cargarCatalogo } from '../core/data/catalogo-data';
+import { cargarCategorias } from '../core/data/catalogo-data';
 import { irA } from '../core/utils/navegacion';
 import { alternarTema, temaActual } from '../core/utils/tema';
 
@@ -119,11 +119,9 @@ export class TiendaHeader {
   constructor() {
     afterNextRender(async () => {
       try {
-        const productos = await cargarCatalogo();
-        const conteo = new Map<string, number>();
-        productos.forEach(p => conteo.set(p.categoria, (conteo.get(p.categoria) ?? 0) + 1));
-        this.categorias.set([...conteo].map(([nombre, cantidad]) => ({ nombre, cantidad })));
-        this.total.set(productos.length);
+        const lista = await cargarCategorias();
+        this.categorias.set(lista);
+        this.total.set(lista.reduce((suma, c) => suma + c.cantidad, 0));
       } catch {
         /* sin conexión: el menú muestra solo los accesos */
       }

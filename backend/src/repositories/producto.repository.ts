@@ -1,6 +1,8 @@
 import { Conexion, contiene, Fila, pool, ResultadoEscritura } from '../config/database';
 import { ProductoDto } from '../models/producto.model';
 
+export type OrdenCatalogo = 'relevancia' | 'precio-asc' | 'precio-desc' | 'nombre';
+
 export interface ProductoRow extends Fila {
   id_producto: number;
   codigo_sku: string;
@@ -73,6 +75,61 @@ export class ProductoRepository {
       params
     );
     return rows;
+  }
+
+  /**
+   * Catálogo por páginas: filtra, ordena y devuelve solo una página.
+   * - palabras: cada palabra debe aparecer en el nombre, SKU, categoría, subcategoría o medida.
+   * - categorias: una o varias (vacío = todas).
+   * El total sale de COUNT(*) OVER(), así se resuelve en una sola consulta.
+   */
+  async paginar(filtros: {
+    palabras: string[];
+    categorias: string[];
+    orden: OrdenCatalogo;
+    limite: number;
+    offset: number;
+  }): Promise<{ filas: ProductoRow[]; total: number }> {
+    const where: string[] = ["p.estado <> 'DESCONTINUADO'"];
+    const params: unknown[] = [];
+
+    if (filtros.categorias.length > 0) {
+      where.push('c.nombre_categoria = ANY(?)');
+      params.push(filtros.categorias);
+    }
+
+    for (const palabra of filtros.palabras) {
+      const columnas = ['p.nombre_completo', 'p.codigo_sku', 'c.nombre_categoria', 'p.subcategoria', 'p.medida'];
+      where.push(`(${columnas.map(col => contiene(`COALESCE(${col}, '')`)).join(' OR ')})`);
+      columnas.forEach(() => params.push(`%${palabra}%`));
+    }
+
+    const ordenSql: Record<OrdenCatalogo, string> = {
+      relevancia: 'p.id_producto ASC',
+      'precio-asc': 'p.precio ASC, p.id_producto ASC',
+      'precio-desc': 'p.precio DESC, p.id_producto ASC',
+      nombre: 'p.nombre_completo ASC, p.id_producto ASC'
+    };
+
+    const [rows] = await pool.query<(ProductoRow & { total_filas: number })[]>(
+      `${SELECT_PRODUCTO.replace('SELECT ', 'SELECT COUNT(*) OVER() AS total_filas, ')}
+        WHERE ${where.join(' AND ')}
+        ORDER BY ${ordenSql[filtros.orden]}
+        LIMIT ? OFFSET ?`,
+      [...params, filtros.limite, filtros.offset]
+    );
+
+    // Página fuera de rango (sin filas): se pide el total aparte.
+    if (rows.length === 0 && filtros.offset > 0) {
+      const [conteo] = await pool.query<Fila[]>(
+        `SELECT COUNT(*) AS n FROM tbl_productos p JOIN tbl_categorias c ON c.id_categoria = p.id_categoria
+          WHERE ${where.join(' AND ')}`,
+        params
+      );
+      return { filas: [], total: Number(conteo[0]?.n ?? 0) };
+    }
+
+    return { filas: rows, total: Number(rows[0]?.total_filas ?? 0) };
   }
 
   async porSku(sku: string): Promise<ProductoRow | null> {

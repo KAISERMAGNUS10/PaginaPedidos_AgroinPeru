@@ -1,14 +1,13 @@
 // @ts-nocheck
-// Catálogo de la tienda: tarjetas de productos, buscador, filtro por categorías y orden.
+// Catálogo de la tienda por páginas: 12 productos a la vez, con buscador, categorías y orden.
+// El backend filtra, ordena y pagina (GET /api/public/productos?pagina=…); aquí solo se pinta.
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
 import { TiendaHeader } from '../../../shared/tienda-header';
-import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
-import { alCargar, onGlobal } from '../../../core/utils/navegacion';
-import { CATALOGO_AGRO, cargarCatalogo, obtenerProductoCatalogo } from '../../../core/data/catalogo-data';
+import { ejecutarPagina, onGlobal, alLimpiar, type Limpiador } from '../../../core/utils/navegacion';
+import { cargarCategorias, cargarPaginaCatalogo } from '../../../core/data/catalogo-data';
 import { guardarCarrito, leerCarrito } from '../../../core/utils/carrito-store';
-import { conAviso } from '../../../core/utils/precarga';
-import { actualizarContadorCarrito } from '../../../core/utils/layout-global';
-import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
+import { mensajeError } from '../../../core/utils/api';
+import { actualizarContadorCarrito, iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
 @Component({
   selector: 'app-home',
@@ -23,13 +22,11 @@ export class Home implements OnDestroy {
   private limpiar: Limpiador | null = null;
 
   constructor() {
-    // El código de la página trabaja sobre el HTML ya pintado, por eso corre después del primer render (solo navegador).
+    // Trabaja sobre el HTML ya pintado: corre después del primer render (solo navegador).
     afterNextRender(() => {
-      conAviso(cargarCatalogo()).then(() => {
-        this.limpiar = ejecutarPagina(() => {
-          iniciarHome();
-          iniciarGlobalPublico();
-        });
+      this.limpiar = ejecutarPagina(() => {
+        iniciarHome();
+        iniciarGlobalPublico();
       });
     });
   }
@@ -39,58 +36,60 @@ export class Home implements OnDestroy {
   }
 }
 
+const POR_PAGINA = 12;
+const ORDENES = ['relevancia', 'precio-asc', 'precio-desc', 'nombre'];
 const ICONO_PAPELERA = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18 M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6 M10 11v6 M14 11v6 M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
 
 function iniciarHome() {
+const $ = id => document.getElementById(id);
 let carritoLocal = leerCarrito();
+/** Productos de la página que se ve (para agregarlos al carrito). */
+let productosVisibles = new Map();
+/** Cada pedido a la API lleva un número: si llega una respuesta vieja, se ignora. */
+let ultimoPedido = 0;
+let temporizadorBusqueda = null;
 
-/** Minúsculas, sin tildes y con los símbolos de medida unificados (° " ″ ×). */
-function normalizarTexto(valor) {
-    return (valor || '')
-        .toString()
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .toLowerCase()
-        .replace(/[″”“]/g, '"')
-        .replace(/×/g, 'x')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
+// Estado inicial desde la URL: /?q=codo&categoria=Mangueras,Válvulas&orden=precio-asc&pagina=2
+const params = new URLSearchParams(window.location.search);
+const estado = {
+    pagina: Math.max(parseInt(params.get('pagina') || '1', 10) || 1, 1),
+    q: params.get('q') || '',
+    categorias: (params.get('categoria') || '').split(',').map(c => c.trim()).filter(Boolean),
+    orden: ORDENES.includes(params.get('orden')) ? params.get('orden') : 'relevancia'
+};
 
 function escaparHtml(valor) {
-    return (valor || '')
-        .toString()
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    return (valor ?? '').toString()
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
-function textoCaja(producto) {
-    return producto.cantidadCaja === null || producto.cantidadCaja === undefined
-        ? 'No especificado'
-        : `${producto.cantidadCaja} un.`;
+const textoCaja = p => p.cantidadCaja == null ? 'No especificado' : `${p.cantidadCaja} un.`;
+const textoBolsa = p => p.cantidadBolsa == null ? 'No aplica' : `${p.cantidadBolsa} un.`;
+
+/* ------------------------- URL ------------------------- */
+
+/** Guarda los filtros en la URL (así se puede recargar o compartir la página). */
+function actualizarUrl() {
+    const p = new URLSearchParams();
+    if (estado.q.trim()) p.set('q', estado.q.trim());
+    if (estado.categorias.length) p.set('categoria', estado.categorias.join(','));
+    if (estado.orden !== 'relevancia') p.set('orden', estado.orden);
+    if (estado.pagina > 1) p.set('pagina', String(estado.pagina));
+    const url = '/' + (p.toString() ? `?${p}` : '');
+        if (url !== window.location.pathname + window.location.search) {
+        history.replaceState(history.state, '', url);
+    }
+    // El detalle de producto usa esto para "Volver al catálogo" (misma página y filtros).
+    try { sessionStorage.setItem('agro_ultimo_catalogo', url); } catch { /* sin almacenamiento */ }
 }
 
-function textoBolsa(producto) {
-    return producto.cantidadBolsa === null || producto.cantidadBolsa === undefined
-        ? 'No aplica'
-        : `${producto.cantidadBolsa} un.`;
-}
+/* ------------------------- Tarjetas ------------------------- */
 
-function renderizarCatalogoProductos() {
-    const grid = document.getElementById('product-grid');
-    if (!grid) return;
-
-    grid.innerHTML = CATALOGO_AGRO.map((producto, posicion) => `
-        <article class="product-card"
-            data-id="${escaparHtml(producto.id)}"
-            data-posicion="${posicion}"
-            data-nombre="${escaparHtml(producto.nombreCompleto)}"
-            data-precio="${producto.precio.toFixed(2)}"
-            data-categoria="${escaparHtml(producto.categoria)}"
-            data-busqueda="${escaparHtml(normalizarTexto([producto.nombreCompleto, producto.categoria, producto.subcategoria, producto.medida, producto.id].join(' ')))}">
+function tarjeta(producto) {
+    const id = escaparHtml(producto.id);
+    return `
+        <article class="product-card" data-id="${id}">
             <a href="/producto?id=${encodeURIComponent(producto.id)}">
                 <div class="product-image-wrap">
                     <img src="${escaparHtml(producto.imagen)}" alt="${escaparHtml(producto.nombreCompleto)}" loading="lazy" decoding="async" width="400" height="400" onerror="this.src='img/logoagroperu.jpg'">
@@ -106,81 +105,63 @@ function renderizarCatalogoProductos() {
                 <span>Bolsa: <strong>${textoBolsa(producto)}</strong></span>
             </div>
             <div class="price-box">
-                <p class="price">S/ ${producto.precio.toFixed(2)}</p>
+                <p class="price">S/ ${Number(producto.precio).toFixed(2)}</p>
                 <small>inc. IGV</small>
             </div>
             <div class="cart-controls">
-                <button class="btn-add-initial" type="button" data-cart-action="add" data-id="${escaparHtml(producto.id)}">Agregar al carrito</button>
+                <button class="btn-add-initial" type="button" data-cart-action="add" data-id="${id}">Agregar al carrito</button>
                 <div class="qty-control" style="display:none;">
-                    <button class="qty-btn trash" type="button" data-cart-action="minus" data-id="${escaparHtml(producto.id)}" aria-label="Quitar uno">${ICONO_PAPELERA}</button>
+                    <button class="qty-btn trash" type="button" data-cart-action="minus" data-id="${id}" aria-label="Quitar uno">${ICONO_PAPELERA}</button>
                     <span class="qty-val">1 un</span>
-                    <button class="qty-btn" type="button" data-cart-action="plus" data-id="${escaparHtml(producto.id)}" aria-label="Agregar uno">+</button>
+                    <button class="qty-btn" type="button" data-cart-action="plus" data-id="${id}" aria-label="Agregar uno">+</button>
                 </div>
             </div>
-        </article>
-    `).join('');
-
-    grid.addEventListener('click', event => {
-        const boton = event.target.closest('[data-cart-action]');
-        if (!boton) return;
-        event.preventDefault();
-        const id = boton.dataset.id;
-        const accion = boton.dataset.cartAction;
-        if (accion === 'add') agregarProducto(id);
-        if (accion === 'plus') modificarQty(id, 1);
-        if (accion === 'minus') modificarQty(id, -1);
-    });
+        </article>`;
 }
 
-/** Chips de categorías: cada uno es un checkbox (se pueden elegir varias). */
-function renderizarCategorias() {
-    const contenedor = document.getElementById('category-filter-list');
-    if (!contenedor) return;
-
-    const categorias = Array.from(new Set(CATALOGO_AGRO.map(producto => producto.categoria)));
-    contenedor.innerHTML = categorias.map(categoria => {
-        const cantidad = CATALOGO_AGRO.filter(producto => producto.categoria === categoria).length;
-        return `
-            <label class="chip">
-                <input type="checkbox" class="category-filter" value="${escaparHtml(categoria)}">
-                <span>${escaparHtml(categoria)}</span>
-                <span class="category-count">${cantidad}</span>
-            </label>
-        `;
-    }).join('');
+/** Tarjetas grises mientras llega la página (el usuario ve que algo está cargando). */
+function pintarEsqueleto() {
+    const grid = $('product-grid');
+    if (!grid) return;
+    grid.hidden = false;
+    grid.innerHTML = Array.from({ length: POR_PAGINA }, () => `
+        <div class="product-card esqueleto" aria-hidden="true">
+            <div class="product-image-wrap"></div>
+            <span class="esq-linea corta"></span>
+            <span class="esq-linea"></span>
+            <span class="esq-linea media"></span>
+            <span class="esq-boton"></span>
+        </div>`).join('');
 }
+
+/* ------------------------- Carrito ------------------------- */
 
 function renderizarCarrito() {
-    if (typeof actualizarContadorCarrito === 'function') actualizarContadorCarrito();
+    actualizarContadorCarrito();
 
-    document.querySelectorAll('.product-card').forEach(card => {
-        const id = card.dataset.id;
+    document.querySelectorAll('.product-card[data-id]').forEach(card => {
+        const item = carritoLocal[card.dataset.id];
         const btnInitial = card.querySelector('.btn-add-initial');
         const qtyControl = card.querySelector('.qty-control');
-        const qtyVal = card.querySelector('.qty-val');
-        const btnMenos = qtyControl ? qtyControl.querySelector('[data-cart-action="minus"]') : null;
-        const item = carritoLocal[id];
+        const btnMenos = card.querySelector('[data-cart-action="minus"]');
 
         if (item && item.qty > 0) {
-            if (btnInitial) btnInitial.style.display = 'none';
-            if (qtyControl) qtyControl.style.display = 'flex';
-            if (qtyVal) qtyVal.textContent = `${item.qty} un`;
-
-            if (btnMenos) {
-                const unidad = item.qty === 1;
-                btnMenos.classList.toggle('trash', unidad);
-                btnMenos.innerHTML = unidad ? ICONO_PAPELERA : '−';
-                btnMenos.setAttribute('aria-label', unidad ? 'Quitar del carrito' : 'Quitar uno');
-            }
+            btnInitial.style.display = 'none';
+            qtyControl.style.display = 'flex';
+            card.querySelector('.qty-val').textContent = `${item.qty} un`;
+            const unidad = item.qty === 1;
+            btnMenos.classList.toggle('trash', unidad);
+            btnMenos.innerHTML = unidad ? ICONO_PAPELERA : '−';
+            btnMenos.setAttribute('aria-label', unidad ? 'Quitar del carrito' : 'Quitar uno');
         } else {
-            if (btnInitial) btnInitial.style.display = 'flex';
-            if (qtyControl) qtyControl.style.display = 'none';
+            btnInitial.style.display = 'flex';
+            qtyControl.style.display = 'none';
         }
     });
 }
 
 function agregarProducto(id) {
-    const producto = obtenerProductoCatalogo(id);
+    const producto = productosVisibles.get(id);
     if (!producto) return;
 
     if (!carritoLocal[id]) {
@@ -198,142 +179,221 @@ function agregarProducto(id) {
     } else {
         carritoLocal[id].qty++;
     }
-
     guardarCarrito(carritoLocal);
     renderizarCarrito();
 }
 
 function modificarQty(id, cambio) {
     if (!carritoLocal[id]) return;
-
     carritoLocal[id].qty += cambio;
     if (carritoLocal[id].qty <= 0) delete carritoLocal[id];
-
     guardarCarrito(carritoLocal);
     renderizarCarrito();
 }
 
-function obtenerCategoriasSeleccionadas() {
-    return Array.from(document.querySelectorAll('.category-filter:checked')).map(input => input.value);
-}
+/* ------------------------- Paginación ------------------------- */
 
-/** Ordena las tarjetas sin volver a pintarlas (así no se pierde el estado del carrito). */
-function ordenarTarjetas() {
-    const grid = document.getElementById('product-grid');
-    const orden = document.getElementById('catalog-sort')?.value || 'relevancia';
-    if (!grid) return;
-
-    const cards = Array.from(grid.querySelectorAll('.product-card'));
-    const precio = c => Number(c.dataset.precio);
-    const comparar = {
-        'precio-asc': (a, b) => precio(a) - precio(b),
-        'precio-desc': (a, b) => precio(b) - precio(a),
-        'nombre': (a, b) => a.dataset.nombre.localeCompare(b.dataset.nombre, 'es', { numeric: true }),
-        'relevancia': (a, b) => Number(a.dataset.posicion) - Number(b.dataset.posicion)
-    }[orden];
-    cards.sort(comparar).forEach(card => grid.appendChild(card));
-}
-
-/** Busca por palabras: "codo 1/2" encuentra los codos de 1/2" aunque las palabras estén separadas. */
-function aplicarFiltros() {
-    const inputBusqueda = document.getElementById('header-search-input');
-    const textoResultado = document.getElementById('catalog-result-text');
-    const emptyState = document.getElementById('catalog-empty');
-    const grid = document.getElementById('product-grid');
-    const btnReset = document.getElementById('btn-reset-catalog');
-    const query = normalizarTexto(inputBusqueda ? inputBusqueda.value : '');
-    const palabras = query ? query.split(' ') : [];
-    const categorias = obtenerCategoriasSeleccionadas();
-    const cards = Array.from(document.querySelectorAll('.product-card'));
-    let visibles = 0;
-
-    cards.forEach(card => {
-        const texto = card.dataset.busqueda || '';
-        const coincideTexto = palabras.every(p => texto.includes(p));
-        const coincideCategoria = categorias.length === 0 || categorias.includes(card.dataset.categoria);
-        const visible = coincideTexto && coincideCategoria;
-
-        card.hidden = !visible;
-        card.classList.toggle('producto-oculto', !visible);
-        if (visible) visibles++;
-    });
-
-    const hayFiltros = palabras.length > 0 || categorias.length > 0;
-    if (grid) grid.hidden = visibles === 0;
-    if (emptyState) emptyState.hidden = visibles !== 0;
-    if (btnReset) btnReset.hidden = !hayFiltros;
-
-    if (textoResultado) {
-        const busqueda = inputBusqueda && inputBusqueda.value.trim() ? ` para "${inputBusqueda.value.trim()}"` : '';
-        if (!hayFiltros) textoResultado.textContent = `${cards.length} productos`;
-        else if (visibles === 0) textoResultado.textContent = `Sin resultados${busqueda}`;
-        else textoResultado.textContent = `${visibles} producto${visibles === 1 ? '' : 's'}${busqueda}`;
+/** Números a mostrar: 1 … 4 5 [6] 7 8 … 34 (los "lejanos" se ocultan en celular). */
+function numerosPagina(actual, total) {
+    const lista = [];
+    for (let n = 1; n <= total; n++) {
+        const distancia = Math.abs(n - actual);
+        if (n === 1 || n === total || distancia <= 2) lista.push({ n, lejos: distancia === 2 && n !== 1 && n !== total });
+        else if (lista[lista.length - 1]?.n !== '…') lista.push({ n: '…' });
     }
+    return lista;
 }
 
-function limpiarFiltrosCatalogo() {
-    const inputBusqueda = document.getElementById('header-search-input');
-    if (inputBusqueda) inputBusqueda.value = '';
-    document.querySelectorAll('.category-filter').forEach(input => input.checked = false);
-    aplicarFiltros();
+function pintarPaginacion(pagina, paginas) {
+    const nav = $('paginacion');
+    if (!nav) return;
+    nav.hidden = paginas <= 1;
+    if (paginas <= 1) { nav.innerHTML = ''; return; }
+
+    const boton = (n, texto, extra = '') =>
+        `<button type="button" class="pag-btn ${extra}" data-pagina="${n}" ${n === pagina ? 'aria-current="page"' : ''}>${texto}</button>`;
+
+    nav.innerHTML = `
+        <button type="button" class="pag-btn pag-flecha" data-pagina="${pagina - 1}" ${pagina === 1 ? 'disabled' : ''} aria-label="Página anterior">
+            <span aria-hidden="true">‹</span><span class="pag-texto">Anterior</span>
+        </button>
+        <div class="pag-numeros">
+            ${numerosPagina(pagina, paginas).map(x => x.n === '…'
+                ? '<span class="pag-puntos" aria-hidden="true">…</span>'
+                : boton(x.n, x.n, (x.n === pagina ? 'activa' : '') + (x.lejos ? ' lejos' : ''))).join('')}
+        </div>
+        <span class="pag-resumen">Página ${pagina} de ${paginas}</span>
+        <button type="button" class="pag-btn pag-flecha" data-pagina="${pagina + 1}" ${pagina === paginas ? 'disabled' : ''} aria-label="Página siguiente">
+            <span class="pag-texto">Siguiente</span><span aria-hidden="true">›</span>
+        </button>`;
 }
 
-/** Desde el menú lateral se elige una sola categoría ('' = todas). */
-function elegirSoloCategoria(categoria) {
-    document.querySelectorAll('.category-filter').forEach(input => {
-        input.checked = !!categoria && input.value === categoria;
-    });
-    aplicarFiltros();
-}
+/* ------------------------- Cargar página ------------------------- */
 
-function inicializarCatalogo() {
-    const inputBusqueda = document.getElementById('header-search-input');
-    const btnReset = document.getElementById('btn-reset-catalog');
-    const btnEmptyReset = document.getElementById('btn-empty-reset');
-    const selectOrden = document.getElementById('catalog-sort');
-    const params = new URLSearchParams(window.location.search);
-    const queryInicial = params.get('q');
-    const categoriaInicial = params.get('categoria');
+async function cargar({ desplazar = false } = {}) {
+    const numero = ++ultimoPedido;
+    actualizarUrl();
+    pintarEsqueleto();
+    $('catalog-empty').hidden = true;
+    $('btn-reset-catalog').hidden = !(estado.q.trim() || estado.categorias.length);
+    if (desplazar) $('catalogo')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // Primero se pintan las categorías y los productos; luego se aplican los filtros que vienen en la URL.
-    renderizarCategorias();
-    renderizarCatalogoProductos();
+    let datos;
+    try {
+        datos = await cargarPaginaCatalogo({ ...estado, limite: POR_PAGINA });
+    } catch (error) {
+        if (numero !== ultimoPedido) return;
+        $('product-grid').innerHTML = '';
+        $('catalog-result-text').textContent = 'No se pudo cargar el catálogo';
+        const vacio = $('catalog-empty');
+        vacio.querySelector('h3').textContent = 'No se pudo cargar el catálogo';
+        vacio.querySelector('p').textContent = mensajeError(error);
+        vacio.hidden = false;
+        $('paginacion').hidden = true;
+        return;
+    }
+    if (numero !== ultimoPedido) return; // llegó tarde: ya se pidió otra página
+
+    estado.pagina = datos.pagina;
+    actualizarUrl();
+    productosVisibles = new Map(datos.productos.map(p => [p.id, p]));
+
+    const grid = $('product-grid');
+    grid.innerHTML = datos.productos.map(tarjeta).join('');
+    grid.hidden = datos.productos.length === 0;
     renderizarCarrito();
 
-    if (inputBusqueda && queryInicial) inputBusqueda.value = queryInicial;
-    if (categoriaInicial) {
-        document.querySelectorAll('.category-filter').forEach(input => {
-            input.checked = input.value === categoriaInicial;
-        });
-    }
+    const vacio = $('catalog-empty');
+    vacio.querySelector('h3').textContent = 'No encontramos productos';
+    vacio.querySelector('p').textContent = 'Revisa cómo lo escribiste, prueba con una palabra más corta (por ejemplo "codo" o "1/2") o quita los filtros.';
+    vacio.hidden = datos.total !== 0;
 
-    if (inputBusqueda) {
-        inputBusqueda.addEventListener('input', aplicarFiltros);
-        inputBusqueda.addEventListener('search', aplicarFiltros); // la "x" del buscador
-        inputBusqueda.addEventListener('keydown', event => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                aplicarFiltros();
-                document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
-            }
-        });
-    }
+    const busqueda = estado.q.trim() ? ` para "${estado.q.trim()}"` : '';
+    const desde = (datos.pagina - 1) * datos.limite + 1;
+    const hasta = desde + datos.productos.length - 1;
+    $('catalog-result-text').textContent = datos.total === 0
+        ? `Sin resultados${busqueda}`
+        : `${desde}–${hasta} de ${datos.total} producto${datos.total === 1 ? '' : 's'}${busqueda}`;
 
-    if (btnReset) btnReset.addEventListener('click', limpiarFiltrosCatalogo);
-    if (btnEmptyReset) btnEmptyReset.addEventListener('click', limpiarFiltrosCatalogo);
-    if (selectOrden) selectOrden.addEventListener('change', ordenarTarjetas);
+    pintarPaginacion(datos.pagina, datos.paginas);
+}
 
-    onGlobal(document, 'change', event => {
-        if (event.target.classList.contains('category-filter')) aplicarFiltros();
-    });
-    onGlobal(window, 'agro:categoria', event => elegirSoloCategoria(event.detail));
+/* ------------------------- Categorías ------------------------- */
 
-    aplicarFiltros();
-    if (queryInicial || categoriaInicial) {
-        document.getElementById('catalogo')?.scrollIntoView();
+async function pintarCategorias() {
+    const contenedor = $('category-filter-list');
+    if (!contenedor) return;
+    try {
+        const lista = await cargarCategorias();
+        contenedor.innerHTML = lista.map(c => `
+            <label class="chip">
+                <input type="checkbox" class="category-filter" value="${escaparHtml(c.nombre)}" ${estado.categorias.includes(c.nombre) ? 'checked' : ''}>
+                <span>${escaparHtml(c.nombre)}</span>
+                <span class="category-count">${c.cantidad}</span>
+            </label>`).join('');
+        const total = lista.reduce((s, c) => s + c.cantidad, 0);
+        if ($('hero-total')) $('hero-total').textContent = String(total);
+    } catch {
+        contenedor.innerHTML = '';
     }
 }
 
-alCargar(inicializarCatalogo);
+function categoriasMarcadas() {
+    return Array.from(document.querySelectorAll('.category-filter:checked')).map(i => i.value);
+}
 
+function limpiarFiltros() {
+    estado.q = '';
+    estado.categorias = [];
+    estado.pagina = 1;
+    const input = $('header-search-input');
+    if (input) input.value = '';
+    document.querySelectorAll('.category-filter').forEach(i => (i.checked = false));
+    cargar();
+}
+
+/* ------------------------- Eventos ------------------------- */
+
+function inicializar() {
+    const input = $('header-search-input');
+    const orden = $('catalog-sort');
+
+    if (input) {
+        input.value = estado.q;
+        // Busca mientras se escribe, pero espera 350 ms a que la persona deje de teclear.
+        const buscar = (inmediato) => {
+            clearTimeout(temporizadorBusqueda);
+            const ejecutar = () => {
+                if (input.value === estado.q) return;
+                estado.q = input.value;
+                estado.pagina = 1;
+                cargar();
+            };
+            if (inmediato) ejecutar(); else temporizadorBusqueda = setTimeout(ejecutar, 350);
+        };
+        input.addEventListener('input', () => buscar(false));
+        input.addEventListener('search', () => buscar(true)); // la "x" del buscador
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscar(true);
+                $('catalogo')?.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+        alLimpiar(() => clearTimeout(temporizadorBusqueda));
+    }
+
+    if (orden) {
+        orden.value = estado.orden;
+        orden.addEventListener('change', () => {
+            estado.orden = orden.value;
+            estado.pagina = 1;
+            cargar();
+        });
+    }
+
+    $('product-grid').addEventListener('click', event => {
+        const boton = event.target.closest('[data-cart-action]');
+        if (!boton) return;
+        event.preventDefault();
+        const { id, cartAction } = boton.dataset;
+        if (cartAction === 'add') agregarProducto(id);
+        if (cartAction === 'plus') modificarQty(id, 1);
+        if (cartAction === 'minus') modificarQty(id, -1);
+    });
+
+    $('paginacion').addEventListener('click', event => {
+        const boton = event.target.closest('[data-pagina]');
+        if (!boton || boton.disabled) return;
+        const n = Number(boton.dataset.pagina);
+        if (!n || n === estado.pagina) return;
+        estado.pagina = n;
+        cargar({ desplazar: true });
+    });
+
+    $('btn-reset-catalog')?.addEventListener('click', limpiarFiltros);
+    $('btn-empty-reset')?.addEventListener('click', limpiarFiltros);
+
+    onGlobal(document, 'change', event => {
+        if (!event.target.classList?.contains('category-filter')) return;
+        estado.categorias = categoriasMarcadas();
+        estado.pagina = 1;
+        cargar();
+    });
+
+    // Desde el menú lateral se elige una sola categoría ('' = todas).
+    onGlobal(window, 'agro:categoria', event => {
+        const categoria = event.detail;
+        estado.categorias = categoria ? [categoria] : [];
+        estado.pagina = 1;
+        document.querySelectorAll('.category-filter').forEach(i => (i.checked = estado.categorias.includes(i.value)));
+        cargar();
+    });
+
+    pintarCategorias();
+    cargar();
+    if (estado.q || estado.categorias.length || estado.pagina > 1) $('catalogo')?.scrollIntoView();
+}
+
+inicializar();
 }

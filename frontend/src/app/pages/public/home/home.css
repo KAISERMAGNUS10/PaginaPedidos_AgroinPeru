@@ -174,3 +174,73 @@
     .filtro-chips { flex-wrap: nowrap; margin: 0 -12px 16px; padding: 0 12px 2px; overflow-x: auto; scrollbar-width: none; }
     .filtro-chips::-webkit-scrollbar { display: none; }
 }
+
+/* --- Paginación --- */
+.paginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 28px;
+}
+
+.paginacion[hidden] { display: none; }
+
+.pag-numeros { display: flex; align-items: center; gap: 6px; }
+
+.pag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--borde-fuerte);
+    border-radius: 8px;
+    background: var(--sup);
+    color: var(--txt-2);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+}
+
+.pag-btn:hover:not(:disabled):not(.activa) { border-color: var(--marca-txt); color: var(--marca-txt); }
+.pag-btn.activa { background: var(--marca); border-color: var(--marca); color: #fff; cursor: default; }
+.pag-btn:disabled { opacity: .45; cursor: not-allowed; }
+.pag-btn:focus-visible { outline: 2px solid var(--marca-txt); outline-offset: 2px; }
+.pag-flecha span[aria-hidden] { font-size: 18px; line-height: 1; }
+.pag-puntos { min-width: 20px; color: var(--muted); text-align: center; }
+.pag-resumen { display: none; color: var(--muted); font-size: 13.5px; }
+
+/* --- Tarjetas de carga (esqueleto) --- */
+.product-card.esqueleto { gap: 10px; pointer-events: none; }
+.esqueleto .product-image-wrap,
+.esq-linea,
+.esq-boton {
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--sup-3) 0%, var(--sup-2) 50%, var(--sup-3) 100%);
+    background-size: 200% 100%;
+    animation: esq-brillo 1.2s ease-in-out infinite;
+}
+.esq-linea { display: block; height: 12px; width: 85%; }
+.esq-linea.corta { width: 40%; }
+.esq-linea.media { width: 55%; height: 18px; margin-top: 6px; }
+.esq-boton { display: block; height: 40px; margin-top: 8px; }
+
+@keyframes esq-brillo {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+@media (max-width: 700px) {
+    .paginacion { flex-wrap: wrap; gap: 6px; margin-top: 20px; }
+    .pag-numeros { gap: 4px; }
+    .pag-btn { min-width: 36px; height: 38px; padding: 0 10px; font-size: 13.5px; }
+    .pag-btn.lejos { display: none; }
+    .pag-texto { display: none; }
+    .pag-resumen { display: block; order: 3; width: 100%; text-align: center; }
+    .esq-boton { height: 36px; }
+}
