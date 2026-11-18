@@ -25,7 +25,12 @@
           <strong>{{ u.Nombre }} {{ u.Apellidos }}</strong>
           <span>{{ rolTexto() }}</span>
         </div>
-        <a routerLink="/mi-cuenta" class="ap-salir" title="Cambiar contraseña" aria-label="Cambiar contraseña">
+        <button type="button" class="ap-salir" (click)="alternarTema()"
+                [attr.title]="tema() === 'oscuro' ? 'Modo claro' : 'Modo oscuro'"
+                [attr.aria-label]="tema() === 'oscuro' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+          <ap-icono [nombre]="tema() === 'oscuro' ? 'sol' : 'luna'" />
+        </button>
+        <a routerLink="/mi-cuenta" class="ap-salir" title="Mi cuenta y contraseña" aria-label="Mi cuenta y contraseña">
           <ap-icono nombre="llave" />
         </a>
         <button type="button" class="ap-salir" title="Cerrar sesión" aria-label="Cerrar sesión" (click)="salir()">
@@ -41,6 +46,10 @@
     <header class="ap-topbar">
       <button type="button" aria-label="Abrir menú" (click)="menuAbierto.set(true)"><ap-icono nombre="menu" /></button>
       <strong>AGROINPERU · {{ config().panel }}</strong>
+      <button type="button" class="ap-topbar-tema" (click)="alternarTema()"
+              [attr.aria-label]="tema() === 'oscuro' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
+        <ap-icono [nombre]="tema() === 'oscuro' ? 'sol' : 'luna'" />
+      </button>
     </header>
     <main class="ap-contenido">
       <router-outlet />

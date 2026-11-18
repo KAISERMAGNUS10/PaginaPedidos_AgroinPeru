@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ConfirmacionVista } from '../../shared/confirmacion';
 import { inicial } from '../../shared/formato';
 import { Icono } from '../../shared/icono';
+import { alternarTema, temaActual } from '../../core/utils/tema';
 
 interface ItemMenu {
   ruta: string;
@@ -47,6 +48,8 @@ export class AdminLayout {
 
   protected usuario = signal<SesionUsuario | null>(null);
   protected menuAbierto = signal(false);
+  protected tema = temaActual;
+  protected alternarTema = alternarTema;
 
   protected config = computed(() => MENU[this.usuario()?.Rol ?? ''] ?? { panel: 'Panel', items: [] });
   protected rolTexto = computed(() => ROLES[this.usuario()?.Rol ?? ''] ?? '');

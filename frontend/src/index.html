@@ -2,10 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Frontend</title>
+  <title>AGROINPERU · Riego y accesorios</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Catálogo de válvulas, conexiones, aspersores y mangueras de AGROINPERU S.A.C. Pide en línea y recoge en tienda.">
+  <meta name="theme-color" content="#0f4782">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Aplica el tema guardado (o el del sistema) antes de pintar la página.
+    (function () {
+      var tema = null;
+      try { tema = localStorage.getItem('agro_tema'); } catch (e) {}
+      if (tema !== 'claro' && tema !== 'oscuro') {
+        tema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
+      }
+      document.documentElement.setAttribute('data-tema', tema);
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

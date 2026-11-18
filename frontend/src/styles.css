@@ -1,1 +1,129 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   AGROINPERU · Estilos globales
+   Colores del tema claro y oscuro. Todas las pantallas usan estas variables,
+   así el botón de tema (sol / luna) cambia toda la página a la vez.
+   El tema se guarda en localStorage ("agro_tema") y se aplica en index.html
+   antes de pintar la página para que no parpadee.
+   ========================================================================== */
+:root {
+  color-scheme: light;
+  --fondo: #f4f6f8;
+  --sup: #ffffff;
+  --sup-2: #f6f8fa;
+  --sup-3: #eef2f6;
+  --borde: #e1e6ec;
+  --borde-fuerte: #c9d2dc;
+  --txt: #15212e;
+  --txt-2: #3d4b5a;
+  --muted: #6b7887;
+  --marca: #0f4782;
+  --marca-txt: #0f4782;
+  --marca-suave: #e8f0f9;
+  --acento: #0a8f3c;
+  --acento-hover: #087532;
+  --rojo: #d42a20;
+  --sombra: 0 1px 2px rgba(16, 24, 40, .05), 0 2px 8px rgba(16, 24, 40, .05);
+  --sombra-alta: 0 12px 32px rgba(16, 24, 40, .16);
+  --foto-fondo: #ffffff;
+  --tinte-verde: #e8f6ec;
+  --tinte-azul: #e8f1fb;
+  --tinte-azul-2: #d5e5f6;
+  --tinte-rojo: #fdecea;
+  --tinte-ambar: #fff4e2;
+  --txt-verde: #1b7a3a;
+  --txt-ambar: #a24a00;
+  --tinte-violeta: #efe9fe;
+  --txt-violeta: #6d28d9;
+}
+
+/* Solo en pantalla: al imprimir siempre se usan los colores claros. */
+@media screen {
+  :root[data-tema="oscuro"] {
+    color-scheme: dark;
+    --fondo: #0e1318;
+    --sup: #161d24;
+    --sup-2: #1b232c;
+    --sup-3: #222c36;
+    --borde: #2a3540;
+    --borde-fuerte: #3a4754;
+    --txt: #e6ebf0;
+    --txt-2: #c2ccd6;
+    --muted: #8d9aa8;
+    --marca: #2f6fb5;
+    --marca-txt: #7fb2ec;
+    --marca-suave: #1b2c40;
+    --acento: #1fa553;
+    --acento-hover: #24b85d;
+    --rojo: #f0645a;
+    --sombra: 0 1px 2px rgba(0, 0, 0, .4);
+    --sombra-alta: 0 12px 32px rgba(0, 0, 0, .55);
+    --foto-fondo: #f3f5f7;
+    --tinte-verde: #14301f;
+    --tinte-azul: #16283c;
+    --tinte-azul-2: #1d3550;
+    --tinte-rojo: #3a1a18;
+    --tinte-ambar: #352711;
+    --txt-verde: #6fd497;
+    --txt-ambar: #f2b66b;
+    --tinte-violeta: #2a1d47;
+    --txt-violeta: #c9b2fb;
+  }
+}
+
+html, body { margin: 0; }
+body {
+  background: var(--fondo);
+  color: var(--txt);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; }
+
+/* ---------- Modo oscuro: ajustes de piezas con colores fijos ---------- */
+:root[data-tema="oscuro"] input,
+:root[data-tema="oscuro"] select,
+:root[data-tema="oscuro"] textarea {
+  background-color: var(--sup-2);
+  color: var(--txt);
+  border-color: var(--borde-fuerte);
+}
+:root[data-tema="oscuro"] input::placeholder,
+:root[data-tema="oscuro"] textarea::placeholder { color: var(--muted); }
+
+/* Panel interno (Administrador, Caja, Almacén, Soporte) */
+@media screen {
+  :root[data-tema="oscuro"] .ap-shell {
+    --ap-bg: #0e1318;
+    --ap-card: #161d24;
+    --ap-border: #2a3540;
+    --ap-text: #e6ebf0;
+    --ap-muted: #8d9aa8;
+    --ap-brand: #3d82dc;
+    --ap-shadow: 0 1px 2px rgba(0, 0, 0, .45);
+  }
+}
+
+/* Etiquetas de estado de pedido: versión oscura de la paleta */
+:root[data-tema="oscuro"] .estado-VIGENTE, :root[data-tema="oscuro"] .badge-vigente, :root[data-tema="oscuro"] .status-vigente, :root[data-tema="oscuro"] .estado-vigente {
+  background: #3a2f0c !important; color: #f5d469 !important; border-color: #6b5715 !important;
+}
+:root[data-tema="oscuro"] .estado-LISTO_PARA_RECOJO, :root[data-tema="oscuro"] .badge-listo-para-recojo, :root[data-tema="oscuro"] .badge-listo, :root[data-tema="oscuro"] .status-listo {
+  background: #132b47 !important; color: #8cc0f5 !important; border-color: #24507f !important;
+}
+:root[data-tema="oscuro"] .estado-PAGADO, :root[data-tema="oscuro"] .badge-pagado, :root[data-tema="oscuro"] .status-pagado {
+  background: #2a1d47 !important; color: #c9b2fb !important; border-color: #4c3684 !important;
+}
+:root[data-tema="oscuro"] .estado-ENTREGADO, :root[data-tema="oscuro"] .badge-entregado, :root[data-tema="oscuro"] .status-entregado {
+  background: #12321e !important; color: #8fdca9 !important; border-color: #245c38 !important;
+}
+:root[data-tema="oscuro"] .estado-CANCELADO, :root[data-tema="oscuro"] .badge-cancelado, :root[data-tema="oscuro"] .status-cancelado {
+  background: #3d1614 !important; color: #f5a29b !important; border-color: #6e2722 !important;
+}
+:root[data-tema="oscuro"] .estado-EXPIRADO, :root[data-tema="oscuro"] .badge-expirado, :root[data-tema="oscuro"] .status-expirado {
+  background: #232b33 !important; color: #a9b4bf !important; border-color: #3a4652 !important;
+}
+
+/* Respeta a quien pide menos animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

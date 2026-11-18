@@ -1,7 +1,7 @@
 // @ts-nocheck
 // Migrado de carrito.html + script en línea
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar, irA } from '../../../core/utils/navegacion';
 import { obtenerSesionSegura } from '../../../core/utils/auth-storage';
@@ -11,7 +11,7 @@ import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
 @Component({
   selector: 'app-carrito',
-  imports: [RouterLink],
+  imports: [TiendaHeader],
   templateUrl: './carrito.html',
   styleUrls: ['../../../../styles/header.css', './carrito.css', '../../../../styles/ui-enhancements.css'],
   // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
@@ -64,17 +64,16 @@ function iniciarCarrito() {
 
             if (entries.length === 0) {
                 cartListContainer.innerHTML = `
-                    <div style="background: white; padding: 40px; text-align: center; border-radius: 8px; border: 1px solid #ddd;">
-                        <h3 style="color:#666; margin:0;">Tu carro está vacío</h3>
-                        <p style="color:#888; font-size:14px; margin-top:5px;">Agrega productos desde la tienda principal.</p>
+                    <div class="cart-vacio">
+                        <h3>Tu carrito está vacío</h3>
+                        <p>Agrega productos desde el catálogo.</p>
+                        <a href="/" class="btn-ir-catalogo">Ir al catálogo</a>
                     </div>`;
                 btnContinue.disabled = true;
-                btnContinue.style.background = '#ccc';
-                btnContinue.style.cursor = 'not-allowed';
+                
             } else {
                 btnContinue.disabled = false;
-                btnContinue.style.background = '#00c853';
-                btnContinue.style.cursor = 'pointer';
+                
                 
                 entries.forEach(([id, item]) => {
                     // Extrae las propiedades admitiendo español e inglés
@@ -91,7 +90,7 @@ function iniciarCarrito() {
                             <div class="cart-item-info">
                                 <img src="${imagen}" alt="${nombre}" onerror="this.src='img/logoagroperu.jpg'"> 
                                 <div class="cart-item-details">
-                                    <span class="seller-tag">✔ Vendido por <strong>AGROINPERU</strong></span>
+                                    
                                     <strong>${nombre}</strong>
                                     ${item.cantidadCaja ? `<span class="cart-item-meta">Caja: ${item.cantidadCaja} un. · Bolsa: ${item.cantidadBolsa == null ? 'No aplica' : item.cantidadBolsa + ' un.'}</span>` : ''}
                                 </div>
@@ -101,12 +100,12 @@ function iniciarCarrito() {
                                 <div class="item-price">S/ ${(precio * cantidad).toFixed(2)}</div>
                                 
                                 <div class="qty-controls">
-                                    <button type="button" onclick="modificarCantidad('${id}', -1)">-</button>
-                                    <span>${cantidad} UN</span>
-                                    <button type="button" onclick="modificarCantidad('${id}', 1)">+</button>
+                                    <button type="button" onclick="modificarCantidad('${id}', -1)" aria-label="Quitar uno">−</button>
+                                    <span>${cantidad} un</span>
+                                    <button type="button" onclick="modificarCantidad('${id}', 1)" aria-label="Agregar uno">+</button>
                                 </div>
                                 
-                                <button type="button" class="btn-delete" onclick="eliminarProducto('${id}')" title="Eliminar producto">🗑️</button>
+                                <button type="button" class="btn-delete" onclick="eliminarProducto('${id}')" title="Eliminar producto" aria-label="Eliminar producto"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18 M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6 M10 11v6 M14 11v6 M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
                             </div>
                         </div>
                     `;

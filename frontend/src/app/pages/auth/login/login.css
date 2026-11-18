@@ -7,8 +7,8 @@
 }
 
 body {
-    background-color: #F8FAFC;
-    color: #1E293B;
+    background-color: var(--sup-2);
+    color: var(--txt);
 }
 
 /* --- Layout Dividido --- */
@@ -20,7 +20,7 @@ body {
 /* --- Panel Izquierdo (Hero) --- */
 .left-panel {
     flex: 1;
-    background: linear-gradient(rgba(15, 71, 130, 0.9), rgba(0, 174, 239, 0.8)), url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1200&q=80') center/cover;
+    background: #0b2f57;
     color: white;
     padding: 50px;
     display: flex;
@@ -29,7 +29,7 @@ body {
 }
 
 /* Logo (Copiado de tus estilos pero con texto blanco para contrastar el fondo oscuro, excepto el rojo) */
-.logo { display: flex; align-items: center; gap: 12px; background: white; padding: 10px 15px; border-radius: 8px; width: fit-content; }
+.logo { display: flex; align-items: center; gap: 12px; background: var(--sup); padding: 10px 15px; border-radius: 8px; width: fit-content; }
 .logo-icon { height: 40px; width: auto; }
 .logo-text { font-size: 1.4rem; line-height: 1; }
 .text-cyan { color: #00AEEF; font-family: Impact, 'Arial Black', sans-serif; transform: scaleY(1.1); display: inline-block; }
@@ -41,7 +41,7 @@ body {
 }
 
 .hero-content h1 {
-    font-size: 2.8rem;
+    font-size: 2.3rem;
     line-height: 1.2;
     margin-bottom: 20px;
 }
@@ -62,8 +62,8 @@ body {
 
 .features strong {
     display: block;
-    font-size: 1.1rem;
-    color: #38BDF8; /* Un cian más claro para contrastar sobre azul oscuro */
+    font-size: 1.05rem;
+    color: #fff; /* Un cian más claro para contrastar sobre azul oscuro */
     margin-bottom: 5px;
 }
 
@@ -74,7 +74,7 @@ body {
 
 .panel-footer {
     font-size: 0.85rem;
-    color: #94A3B8;
+    color: rgba(255, 255, 255, .6);
 }
 
 /* --- Panel Derecho (Formularios) --- */
@@ -85,7 +85,7 @@ body {
     align-items: center;
     padding: 50px 20px;
     overflow-y: auto;
-    background-color: #F8FAFC;
+    background-color: var(--sup-2);
 }
 
 .forms-container {
@@ -94,7 +94,7 @@ body {
 }
 
 .form-card {
-    background: white;
+    background: var(--sup);
     padding: 35px;
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -103,12 +103,12 @@ body {
 
 .form-card h2 {
     font-size: 1.5rem;
-    color: #0F172A;
+    color: var(--txt);
     margin-bottom: 5px;
 }
 
 .subtitle {
-    color: #64748B;
+    color: var(--muted);
     font-size: 0.9rem;
     margin-bottom: 25px;
 }
@@ -122,14 +122,14 @@ body {
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #334155;
+    color: var(--txt-2);
     margin-bottom: 6px;
 }
 
 .input-group input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #CBD5E1;
+    border: 1px solid var(--borde-fuerte);
     border-radius: 6px;
     outline: none;
     font-size: 0.95rem;
@@ -149,7 +149,7 @@ body {
 }
 
 .form-options .remember {
-    color: #475569;
+    color: var(--txt-2);
 }
 
 .form-options .forgot-link {
@@ -201,7 +201,7 @@ body {
 
 .divider {
     text-align: center;
-    color: #94A3B8;
+    color: var(--muted);
     font-size: 0.9rem;
     margin: 30px 0;
 }
@@ -211,6 +211,12 @@ body {
     .split-layout {
         flex-direction: column;
     }
+    .left-panel { padding: 18px 16px 20px; }
+    .hero-content { margin-top: 16px; }
+    .hero-content h1 { font-size: 1.35rem; margin-bottom: 0; }
+    .hero-content p, .features, .panel-footer { display: none; }
+    .right-panel { padding: 20px 12px 40px; }
+    .form-card { padding: 22px 18px; }
     .left-panel, .right-panel {
         flex: none;
         width: 100%;
@@ -245,9 +251,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    background: #ECFDF5;
+    background: var(--tinte-verde);
     border: 1px solid #A7F3D0;
-    color: #065F46;
+    color: var(--txt-verde);
     border-radius: 10px;
     padding: 16px;
     font-size: 0.95rem;
@@ -255,9 +261,9 @@ body {
 }
 
 .aviso-temporal {
-    background: #FFF7ED;
+    background: var(--tinte-ambar);
     border: 1px solid #FDBA74;
-    color: #9A3412;
+    color: var(--txt-ambar);
     border-radius: 10px;
     padding: 14px 16px;
     font-size: 0.95rem;
@@ -270,8 +276,8 @@ body {
     grid-template-columns: auto 1fr;
     gap: 6px 16px;
     font-size: 0.95rem;
-    color: #334155;
-    background: #F8FAFC;
+    color: var(--txt-2);
+    background: var(--sup-2);
     border-radius: 10px;
     padding: 14px 16px;
     margin-bottom: 24px;
@@ -279,5 +285,5 @@ body {
 
 .datos-cuenta dt {
     font-weight: 600;
-    color: #64748B;
+    color: var(--muted);
 }

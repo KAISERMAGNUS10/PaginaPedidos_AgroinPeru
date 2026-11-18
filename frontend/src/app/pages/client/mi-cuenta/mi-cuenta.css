@@ -1,0 +1,224 @@
+/* Mi cuenta: perfil, datos, cambio de contraseña y últimos pedidos. */
+.cuenta {
+    box-sizing: border-box;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 24px 56px;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+    color: var(--txt);
+}
+.cuenta * { box-sizing: border-box; }
+.cuenta ap-icono { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* --- Perfil --- */
+.cuenta-perfil {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.cuenta-avatar {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--marca);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.cuenta-perfil-texto { flex: 1; min-width: 0; }
+.cuenta-perfil h1 { margin: 0 0 2px; font-size: 24px; line-height: 1.25; }
+.cuenta-perfil p { margin: 0; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.cuenta-rol { color: var(--marca-txt); font-weight: 600; }
+
+/* --- Aviso de contraseña temporal --- */
+.cuenta-aviso {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid #f0c36d;
+    border-radius: 10px;
+    background: #fff7e0;
+    color: #6b4a00;
+    font-size: 14px;
+}
+.cuenta-aviso p { margin: 0; line-height: 1.45; }
+:root[data-tema="oscuro"] .cuenta-aviso { background: #3a2f0c; border-color: #6b5715; color: #f5d469; }
+
+/* --- Pestañas + panel --- */
+.cuenta-cuerpo {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.cuenta-cuerpo:has(> .cuenta-panel:only-child) { grid-template-columns: minmax(0, 560px); }
+
+.cuenta-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    background: var(--sup);
+}
+
+.cuenta-tabs button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--txt-2);
+    font: inherit;
+    font-size: 14.5px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.cuenta-tabs button:hover { background: var(--sup-3); color: var(--txt); }
+.cuenta-tabs button.activo { background: var(--marca-suave); color: var(--marca-txt); font-weight: 600; }
+.cuenta-tabs .cuenta-tab-salir { margin-top: 6px; border-top: 1px solid var(--borde); border-radius: 0 0 8px 8px; color: var(--rojo); }
+
+.cuenta-panel {
+    padding: 22px 24px;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    background: var(--sup);
+}
+
+.cuenta-panel h2 { margin: 0 0 4px; font-size: 18px; }
+.cuenta-panel-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.cuenta-ayuda { margin: 0 0 18px; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+
+/* --- Datos --- */
+.cuenta-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
+    margin: 0;
+}
+
+.cuenta-datos div { padding: 12px 0; border-top: 1px solid var(--borde); }
+.cuenta-datos dt { margin-bottom: 3px; color: var(--muted); font-size: 12.5px; }
+.cuenta-datos dd { margin: 0; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+
+/* --- Formulario --- */
+.cuenta-form { display: flex; flex-direction: column; gap: 14px; max-width: 420px; }
+.cuenta-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--txt-2); }
+
+.cuenta-form input[type="password"],
+.cuenta-form input[type="text"] {
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--borde-fuerte);
+    border-radius: 8px;
+    background: var(--sup);
+    color: var(--txt);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.cuenta-form input:focus { outline: none; border-color: var(--marca-txt); box-shadow: 0 0 0 3px color-mix(in srgb, var(--marca-txt) 22%, transparent); }
+
+.cuenta-check { flex-direction: row !important; align-items: center; gap: 8px !important; font-weight: 500 !important; cursor: pointer; }
+.cuenta-check input { width: 16px; height: 16px; accent-color: var(--marca); }
+
+.cuenta-reglas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 12px;
+    margin: -4px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    font-size: 12.5px;
+}
+
+.cuenta-reglas li { display: flex; align-items: center; gap: 6px; }
+.cuenta .cuenta-reglas ap-icono { width: 14px; height: 14px; }
+.cuenta-reglas li.ok { color: var(--acento); }
+
+.cuenta-error { min-height: 18px; margin: -4px 0 0; color: var(--rojo); font-size: 13px; }
+
+.cuenta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--marca);
+    color: #fff;
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cuenta-btn:hover { filter: brightness(1.1); }
+.cuenta-btn:disabled { opacity: .6; cursor: progress; }
+.cuenta-btn-sec { background: var(--sup); color: var(--txt); border: 1px solid var(--borde-fuerte); }
+.cuenta-form .cuenta-btn { align-self: flex-start; }
+
+/* --- Pedidos --- */
+.cuenta-enlace { color: var(--marca-txt); font-size: 13.5px; font-weight: 600; text-decoration: none; }
+.cuenta-enlace:hover { text-decoration: underline; }
+
+.cuenta-pedidos { margin: 0; padding: 0; list-style: none; }
+.cuenta-pedidos li + li { border-top: 1px solid var(--borde); }
+
+.cuenta-pedidos a {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas: "cod estado total" "fecha estado total";
+    align-items: center;
+    gap: 2px 14px;
+    padding: 12px 8px;
+    border-radius: 8px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.cuenta-pedidos a:hover { background: var(--sup-2); }
+.cuenta-pedido-cod { grid-area: cod; font-weight: 700; font-size: 14.5px; }
+.cuenta-pedido-fecha { grid-area: fecha; color: var(--muted); font-size: 12.5px; }
+.cuenta-pedidos .estado-badge { grid-area: estado; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.cuenta-pedidos strong { grid-area: total; font-size: 15px; text-align: right; }
+
+.cuenta-vacio { padding: 24px 0 6px; text-align: center; color: var(--muted); }
+.cuenta-vacio p { margin: 0 0 14px; }
+
+/* --- Celular --- */
+@media (max-width: 760px) {
+    .cuenta { padding: 18px 12px 40px; }
+    .cuenta-perfil { flex-wrap: wrap; }
+    .cuenta-avatar { width: 48px; height: 48px; font-size: 18px; }
+    .cuenta-perfil h1 { font-size: 19px; }
+    .cuenta-perfil .cuenta-btn { width: 100%; }
+    .cuenta-cuerpo { grid-template-columns: 1fr; gap: 12px; }
+    .cuenta-tabs { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; }
+    .cuenta-tabs button { flex-direction: column; gap: 4px; padding: 8px 4px; font-size: 12.5px; text-align: center; }
+    .cuenta-tabs .cuenta-tab-salir { margin: 0; border: 0; border-radius: 8px; }
+    .cuenta-panel { padding: 16px; }
+    .cuenta-datos { grid-template-columns: 1fr; }
+    .cuenta-form { max-width: none; }
+    .cuenta-form .cuenta-btn { align-self: stretch; }
+    .cuenta-reglas { grid-template-columns: 1fr; }
+    .cuenta-pedidos a { grid-template-columns: 1fr auto; grid-template-areas: "cod total" "fecha estado"; }
+}

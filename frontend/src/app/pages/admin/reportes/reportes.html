@@ -23,7 +23,7 @@
   <div class="ap-card"><div class="ap-cargando"><div class="ap-spinner"></div>Generando reporte…</div></div>
 } @else if (r(); as d) {
 
-  <p style="margin-bottom: 14px; color: #64748b">Periodo analizado: <strong>{{ d.rango.desde }}</strong> al <strong>{{ d.rango.hasta }}</strong></p>
+  <p style="margin-bottom: 14px; color: var(--muted)">Periodo analizado: <strong>{{ d.rango.desde }}</strong> al <strong>{{ d.rango.hasta }}</strong></p>
 
   <div class="ap-grid ap-grid-kpi">
     <div class="ap-card ap-kpi"><div class="ap-kpi-icono verde"><ap-icono nombre="dinero" /></div><div><small>Ventas</small><strong>{{ soles(d.ventas.total) }}</strong><em>{{ plural(d.ventas.cantidad, 'venta', 'ventas') }} · promedio {{ soles(d.ventas.ticketPromedio) }}</em></div></div>

@@ -2,6 +2,7 @@
 // Migrado de ticket.html + ticket.js
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar } from '../../../core/utils/navegacion';
 import { obtenerEstadoTicketActualizado, obtenerTicketActualId } from '../../../core/utils/auth-storage';
@@ -19,7 +20,7 @@ import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
 @Component({
   selector: 'app-ticket',
-  imports: [RouterLink],
+  imports: [RouterLink, TiendaHeader],
   templateUrl: './ticket.html',
   styleUrls: ['../../../../styles/header.css', './ticket.css', '../../../../styles/ui-enhancements.css'],
   // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.

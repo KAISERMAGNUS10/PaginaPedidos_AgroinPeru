@@ -2,6 +2,7 @@
 // Migrado de producto.html + producto.js
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar, irA } from '../../../core/utils/navegacion';
 import { cargarCatalogo, obtenerCategoriasCatalogo, obtenerProductoCatalogo } from '../../../core/data/catalogo-data';
@@ -12,7 +13,7 @@ import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
 @Component({
   selector: 'app-producto',
-  imports: [RouterLink],
+  imports: [RouterLink, TiendaHeader],
   templateUrl: './producto.html',
   styleUrls: ['./producto.css', '../../../../styles/header.css', '../../../../styles/tienda.css', '../../../../styles/ui-enhancements.css'],
   // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
@@ -41,8 +42,10 @@ export class Producto implements OnDestroy {
 }
 
 // ==========================================================================
-// LÓGICA ORIGINAL (copiada tal cual del proyecto viejo)
+// LÓGICA DE LA PÁGINA
 // ==========================================================================
+const ICONO_PAPELERA = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18 M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6 M10 11v6 M14 11v6 M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+
 function iniciarProducto() {
 const productoParams = new URLSearchParams(window.location.search);
 const productoId = productoParams.get('id');
@@ -54,10 +57,10 @@ if (!productoActual) {
 }
 
 function pintarDetalleProducto() {
-    document.title = `${productoActual.nombreCompleto} - AIDP`;
+    document.title = `${productoActual.nombreCompleto} · AGROINPERU`;
     document.getElementById('detalle-nombre').textContent = productoActual.nombre;
     document.getElementById('detalle-medida').textContent = `Medida: ${productoActual.medida}`;
-    document.getElementById('detalle-precio').textContent = `Precio referencial: S/ ${productoActual.precio.toFixed(2)}`;
+    document.getElementById('detalle-precio').textContent = `S/ ${productoActual.precio.toFixed(2)}`;
     document.getElementById('detalle-categoria').textContent = `${productoActual.categoria} · ${productoActual.subcategoria}`;
     document.getElementById('detalle-caja').textContent = productoActual.cantidadCaja === null || productoActual.cantidadCaja === undefined ? 'No especificado' : `${productoActual.cantidadCaja} unidades`;
     document.getElementById('detalle-bolsa').textContent = productoActual.cantidadBolsa === null || productoActual.cantidadBolsa === undefined ? 'No aplica' : `${productoActual.cantidadBolsa} unidades`;
@@ -102,17 +105,10 @@ function renderizarCarritoDetalle() {
         qtyControl.style.display = 'flex';
         qtyVal.textContent = `${item.qty} un`;
 
-        if (item.qty === 1) {
-            btnMenos.textContent = '🗑️';
-            btnMenos.style.background = 'white';
-            btnMenos.style.color = '#00b900';
-            btnMenos.style.border = '1px solid #00b900';
-        } else {
-            btnMenos.textContent = '-';
-            btnMenos.style.background = '#00b900';
-            btnMenos.style.color = 'white';
-            btnMenos.style.border = 'none';
-        }
+        const unidad = item.qty === 1;
+        btnMenos.classList.toggle('trash', unidad);
+        btnMenos.innerHTML = unidad ? ICONO_PAPELERA : '−';
+        btnMenos.setAttribute('aria-label', unidad ? 'Quitar del carrito' : 'Quitar uno');
     } else {
         btnInitial.style.display = 'flex';
         qtyControl.style.display = 'none';
@@ -150,30 +146,9 @@ function modificarQtyActual(cambio) {
     renderizarCarritoDetalle();
 }
 
-function inicializarBusquedaProducto() {
-    const input = document.getElementById('header-search-input');
-    const boton = document.getElementById('btn-header-search');
-
-    const buscar = () => {
-        const texto = input ? input.value.trim() : '';
-        irA(texto ? `/?q=${encodeURIComponent(texto)}` : '/');
-    };
-
-    if (boton) boton.addEventListener('click', buscar);
-    if (input) {
-        input.addEventListener('keydown', event => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                buscar();
-            }
-        });
-    }
-}
-
 alCargar(() => {
     pintarDetalleProducto();
     pintarCategoriasProducto();
-    inicializarBusquedaProducto();
     document.getElementById('btn-add-main').addEventListener('click', agregarProductoActual);
     document.getElementById('btn-menos').addEventListener('click', () => modificarQtyActual(-1));
     document.getElementById('btn-mas').addEventListener('click', () => modificarQtyActual(1));

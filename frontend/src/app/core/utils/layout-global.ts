@@ -37,7 +37,7 @@ export function inicializarSesion() {
         const saludo = obtenerSaludoUsuario();
 
         if (userGreetingLabel) userGreetingLabel.textContent = '';
-        if (userDisplayName) userDisplayName.textContent = `${saludo} ⌄`;
+        if (userDisplayName) userDisplayName.textContent = saludo;
         if (dropdownUserFull) dropdownUserFull.textContent = saludo.replace('Hola ', '');
 
         if (userTrigger && userDropdownMenu) {
@@ -75,7 +75,7 @@ export function inicializarSesion() {
             });
         }
     } else {
-        if (userDisplayName) userDisplayName.textContent = "Inicia sesión ⌄";
+        if (userDisplayName) userDisplayName.textContent = "Iniciar sesión";
         if (userTrigger) {
             userTrigger.addEventListener('click', () => {
                 irA('/login');
@@ -168,7 +168,8 @@ export function inyectarEstilosNotificacion() {
     const style = document.createElement('style');
     style.id = 'agro-notif-styles';
     style.textContent = `
-        #agro-notif-container { position: fixed; top: 20px; right: 20px; z-index: 6000; display: flex; flex-direction: column; gap: 10px; max-width: 320px; }
+        #agro-notif-container { position: fixed; top: 20px; right: 16px; left: auto; z-index: 6000; display: flex; flex-direction: column; gap: 10px; max-width: 320px; }
+        @media (max-width: 480px) { #agro-notif-container { left: 16px; max-width: none; } }
         .agro-notif-toast { background: #0F4782; color: #fff; padding: 14px 18px; border-radius: 8px; font-size: 13.5px; line-height: 1.4; box-shadow: 0 4px 14px rgba(0,0,0,0.25); opacity: 0; transform: translateY(-10px); transition: opacity 0.25s ease, transform 0.25s ease; }
         .agro-notif-toast.mostrar { opacity: 1; transform: translateY(0); }
         .agro-notif-toast strong { display: block; margin-bottom: 3px; }
@@ -187,7 +188,7 @@ export function mostrarNotificacionCliente(mensaje) {
 
     const toast = document.createElement('div');
     toast.className = 'agro-notif-toast';
-    toast.innerHTML = `<strong>📦 AGROINPERU</strong>${mensaje}`;
+    toast.innerHTML = `<strong>AGROINPERU</strong>${mensaje}`;
     contenedor.appendChild(toast);
 
     requestAnimationFrame(() => toast.classList.add('mostrar'));
@@ -327,7 +328,8 @@ async function refrescarNotificaciones() {
 
 export function iniciarGlobalPublico() {
     // Con la contraseña temporal de soporte no se navega la tienda hasta cambiarla.
-    if (obtenerSesionSegura()?.DebeCambiarPassword) {
+    // (En /mi-cuenta no se redirige: allí se cambia la contraseña.)
+    if (obtenerSesionSegura()?.DebeCambiarPassword && window.location.pathname !== '/mi-cuenta') {
         irA('/mi-cuenta', true);
         return;
     }

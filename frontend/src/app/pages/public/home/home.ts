@@ -1,7 +1,7 @@
 // @ts-nocheck
-// Migrado de index.html + index.js
+// Catálogo de la tienda: tarjetas de productos, buscador, filtro por categorías y orden.
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { TiendaHeader } from '../../../shared/tienda-header';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar, onGlobal } from '../../../core/utils/navegacion';
 import { CATALOGO_AGRO, cargarCatalogo, obtenerProductoCatalogo } from '../../../core/data/catalogo-data';
@@ -12,10 +12,9 @@ import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [TiendaHeader],
   templateUrl: './home.html',
   styleUrls: ['./home.css', '../../../../styles/header.css', '../../../../styles/tienda.css', '../../../../styles/ui-enhancements.css'],
-  // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
   encapsulation: ViewEncapsulation.None,
   preserveWhitespaces: true,
   host: { style: 'display: contents' }
@@ -24,13 +23,13 @@ export class Home implements OnDestroy {
   private limpiar: Limpiador | null = null;
 
   constructor() {
-    // El JS original necesita que el HTML ya esté en el DOM, por eso corre después del primer render (solo navegador).
+    // El código de la página trabaja sobre el HTML ya pintado, por eso corre después del primer render (solo navegador).
     afterNextRender(() => {
       conAviso(cargarCatalogo()).then(() => {
-      this.limpiar = ejecutarPagina(() => {
-        iniciarHome();
-        iniciarGlobalPublico();
-      });
+        this.limpiar = ejecutarPagina(() => {
+          iniciarHome();
+          iniciarGlobalPublico();
+        });
       });
     });
   }
@@ -40,18 +39,21 @@ export class Home implements OnDestroy {
   }
 }
 
-// ==========================================================================
-// LÓGICA ORIGINAL (copiada tal cual del proyecto viejo)
-// ==========================================================================
+const ICONO_PAPELERA = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18 M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6 M10 11v6 M14 11v6 M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+
 function iniciarHome() {
 let carritoLocal = leerCarrito();
 
+/** Minúsculas, sin tildes y con los símbolos de medida unificados (° " ″ ×). */
 function normalizarTexto(valor) {
     return (valor || '')
         .toString()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[̀-ͯ]/g, '')
         .toLowerCase()
+        .replace(/[″”“]/g, '"')
+        .replace(/×/g, 'x')
+        .replace(/\s+/g, ' ')
         .trim();
 }
 
@@ -77,47 +79,42 @@ function textoBolsa(producto) {
         : `${producto.cantidadBolsa} un.`;
 }
 
-
-
 function renderizarCatalogoProductos() {
     const grid = document.getElementById('product-grid');
     if (!grid) return;
 
-    grid.innerHTML = CATALOGO_AGRO.map(producto => `
+    grid.innerHTML = CATALOGO_AGRO.map((producto, posicion) => `
         <article class="product-card"
             data-id="${escaparHtml(producto.id)}"
+            data-posicion="${posicion}"
             data-nombre="${escaparHtml(producto.nombreCompleto)}"
             data-precio="${producto.precio.toFixed(2)}"
             data-categoria="${escaparHtml(producto.categoria)}"
-            data-subcategoria="${escaparHtml(producto.subcategoria)}"
-            data-medida="${escaparHtml(producto.medida)}">
-            <div class="product-badges-top">
-                <span class="badge badge-category">${escaparHtml(producto.categoria)}</span>
-                <span class="badge badge-subcategory">${escaparHtml(producto.subcategoria)}</span>
-            </div>
+            data-busqueda="${escaparHtml(normalizarTexto([producto.nombreCompleto, producto.categoria, producto.subcategoria, producto.medida, producto.id].join(' ')))}">
             <a href="/producto?id=${encodeURIComponent(producto.id)}">
                 <div class="product-image-wrap">
-                    <img src="${escaparHtml(producto.imagen)}" alt="${escaparHtml(producto.nombreCompleto)}" onerror="this.src='img/logoagroperu.jpg'">
+                    <img src="${escaparHtml(producto.imagen)}" alt="${escaparHtml(producto.nombreCompleto)}" loading="lazy" decoding="async" width="400" height="400" onerror="this.src='img/logoagroperu.jpg'">
                 </div>
                 <div class="product-copy">
-                    <p class="product-measure-chip">${escaparHtml(producto.medida)}</p>
+                    <span class="product-cat">${escaparHtml(producto.subcategoria || producto.categoria)}</span>
                     <h4>${escaparHtml(producto.nombre)}</h4>
+                    <p class="product-measure-chip">${escaparHtml(producto.medida)}</p>
                 </div>
             </a>
             <div class="product-specs">
-                <span><strong>Presentación caja:</strong> ${textoCaja(producto)}</span>
-                <span><strong>Presentación bolsa:</strong> ${textoBolsa(producto)}</span>
+                <span>Caja: <strong>${textoCaja(producto)}</strong></span>
+                <span>Bolsa: <strong>${textoBolsa(producto)}</strong></span>
             </div>
             <div class="price-box">
-                <small>Precio referencial</small>
                 <p class="price">S/ ${producto.precio.toFixed(2)}</p>
+                <small>inc. IGV</small>
             </div>
             <div class="cart-controls">
-                <button class="btn-add-initial" type="button" data-cart-action="add" data-id="${escaparHtml(producto.id)}">+ Agregar al carrito</button>
+                <button class="btn-add-initial" type="button" data-cart-action="add" data-id="${escaparHtml(producto.id)}">Agregar al carrito</button>
                 <div class="qty-control" style="display:none;">
-                    <button class="qty-btn trash" type="button" data-cart-action="minus" data-id="${escaparHtml(producto.id)}">🗑️</button>
+                    <button class="qty-btn trash" type="button" data-cart-action="minus" data-id="${escaparHtml(producto.id)}" aria-label="Quitar uno">${ICONO_PAPELERA}</button>
                     <span class="qty-val">1 un</span>
-                    <button class="qty-btn" type="button" data-cart-action="plus" data-id="${escaparHtml(producto.id)}">+</button>
+                    <button class="qty-btn" type="button" data-cart-action="plus" data-id="${escaparHtml(producto.id)}" aria-label="Agregar uno">+</button>
                 </div>
             </div>
         </article>
@@ -135,6 +132,7 @@ function renderizarCatalogoProductos() {
     });
 }
 
+/** Chips de categorías: cada uno es un checkbox (se pueden elegir varias). */
 function renderizarCategorias() {
     const contenedor = document.getElementById('category-filter-list');
     if (!contenedor) return;
@@ -143,7 +141,7 @@ function renderizarCategorias() {
     contenedor.innerHTML = categorias.map(categoria => {
         const cantidad = CATALOGO_AGRO.filter(producto => producto.categoria === categoria).length;
         return `
-            <label>
+            <label class="chip">
                 <input type="checkbox" class="category-filter" value="${escaparHtml(categoria)}">
                 <span>${escaparHtml(categoria)}</span>
                 <span class="category-count">${cantidad}</span>
@@ -169,17 +167,10 @@ function renderizarCarrito() {
             if (qtyVal) qtyVal.textContent = `${item.qty} un`;
 
             if (btnMenos) {
-                if (item.qty === 1) {
-                    btnMenos.textContent = '🗑️';
-                    btnMenos.style.background = 'white';
-                    btnMenos.style.color = '#00b900';
-                    btnMenos.style.border = '1px solid #00b900';
-                } else {
-                    btnMenos.textContent = '-';
-                    btnMenos.style.background = '#00b900';
-                    btnMenos.style.color = 'white';
-                    btnMenos.style.border = 'none';
-                }
+                const unidad = item.qty === 1;
+                btnMenos.classList.toggle('trash', unidad);
+                btnMenos.innerHTML = unidad ? ICONO_PAPELERA : '−';
+                btnMenos.setAttribute('aria-label', unidad ? 'Quitar del carrito' : 'Quitar uno');
             }
         } else {
             if (btnInitial) btnInitial.style.display = 'flex';
@@ -226,6 +217,24 @@ function obtenerCategoriasSeleccionadas() {
     return Array.from(document.querySelectorAll('.category-filter:checked')).map(input => input.value);
 }
 
+/** Ordena las tarjetas sin volver a pintarlas (así no se pierde el estado del carrito). */
+function ordenarTarjetas() {
+    const grid = document.getElementById('product-grid');
+    const orden = document.getElementById('catalog-sort')?.value || 'relevancia';
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll('.product-card'));
+    const precio = c => Number(c.dataset.precio);
+    const comparar = {
+        'precio-asc': (a, b) => precio(a) - precio(b),
+        'precio-desc': (a, b) => precio(b) - precio(a),
+        'nombre': (a, b) => a.dataset.nombre.localeCompare(b.dataset.nombre, 'es', { numeric: true }),
+        'relevancia': (a, b) => Number(a.dataset.posicion) - Number(b.dataset.posicion)
+    }[orden];
+    cards.sort(comparar).forEach(card => grid.appendChild(card));
+}
+
+/** Busca por palabras: "codo 1/2" encuentra los codos de 1/2" aunque las palabras estén separadas. */
 function aplicarFiltros() {
     const inputBusqueda = document.getElementById('header-search-input');
     const textoResultado = document.getElementById('catalog-result-text');
@@ -233,19 +242,14 @@ function aplicarFiltros() {
     const grid = document.getElementById('product-grid');
     const btnReset = document.getElementById('btn-reset-catalog');
     const query = normalizarTexto(inputBusqueda ? inputBusqueda.value : '');
+    const palabras = query ? query.split(' ') : [];
     const categorias = obtenerCategoriasSeleccionadas();
     const cards = Array.from(document.querySelectorAll('.product-card'));
     let visibles = 0;
 
     cards.forEach(card => {
-        const texto = normalizarTexto([
-            card.dataset.nombre,
-            card.dataset.categoria,
-            card.dataset.subcategoria,
-            card.dataset.medida,
-            card.textContent
-        ].join(' '));
-        const coincideTexto = !query || texto.includes(query);
+        const texto = card.dataset.busqueda || '';
+        const coincideTexto = palabras.every(p => texto.includes(p));
         const coincideCategoria = categorias.length === 0 || categorias.includes(card.dataset.categoria);
         const visible = coincideTexto && coincideCategoria;
 
@@ -254,15 +258,16 @@ function aplicarFiltros() {
         if (visible) visibles++;
     });
 
-    const hayFiltros = query.length > 0 || categorias.length > 0;
+    const hayFiltros = palabras.length > 0 || categorias.length > 0;
     if (grid) grid.hidden = visibles === 0;
     if (emptyState) emptyState.hidden = visibles !== 0;
     if (btnReset) btnReset.hidden = !hayFiltros;
 
     if (textoResultado) {
-        if (!hayFiltros) textoResultado.textContent = `Mostrando ${cards.length} productos con formato comercial`;
-        else if (visibles === 0) textoResultado.textContent = '0 productos encontrados';
-        else textoResultado.textContent = `${visibles} producto${visibles === 1 ? '' : 's'} encontrado${visibles === 1 ? '' : 's'}`;
+        const busqueda = inputBusqueda && inputBusqueda.value.trim() ? ` para "${inputBusqueda.value.trim()}"` : '';
+        if (!hayFiltros) textoResultado.textContent = `${cards.length} productos`;
+        else if (visibles === 0) textoResultado.textContent = `Sin resultados${busqueda}`;
+        else textoResultado.textContent = `${visibles} producto${visibles === 1 ? '' : 's'}${busqueda}`;
     }
 }
 
@@ -273,18 +278,29 @@ function limpiarFiltrosCatalogo() {
     aplicarFiltros();
 }
 
+/** Desde el menú lateral se elige una sola categoría ('' = todas). */
+function elegirSoloCategoria(categoria) {
+    document.querySelectorAll('.category-filter').forEach(input => {
+        input.checked = !!categoria && input.value === categoria;
+    });
+    aplicarFiltros();
+}
+
 function inicializarCatalogo() {
     const inputBusqueda = document.getElementById('header-search-input');
-    const btnBusqueda = document.getElementById('btn-header-search');
-    const btnClear = document.getElementById('btn-clear-filters');
     const btnReset = document.getElementById('btn-reset-catalog');
     const btnEmptyReset = document.getElementById('btn-empty-reset');
+    const selectOrden = document.getElementById('catalog-sort');
     const params = new URLSearchParams(window.location.search);
     const queryInicial = params.get('q');
     const categoriaInicial = params.get('categoria');
 
-    if (inputBusqueda && queryInicial) inputBusqueda.value = queryInicial;
+    // Primero se pintan las categorías y los productos; luego se aplican los filtros que vienen en la URL.
+    renderizarCategorias();
+    renderizarCatalogoProductos();
+    renderizarCarrito();
 
+    if (inputBusqueda && queryInicial) inputBusqueda.value = queryInicial;
     if (categoriaInicial) {
         document.querySelectorAll('.category-filter').forEach(input => {
             input.checked = input.value === categoriaInicial;
@@ -293,27 +309,29 @@ function inicializarCatalogo() {
 
     if (inputBusqueda) {
         inputBusqueda.addEventListener('input', aplicarFiltros);
+        inputBusqueda.addEventListener('search', aplicarFiltros); // la "x" del buscador
         inputBusqueda.addEventListener('keydown', event => {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 aplicarFiltros();
+                document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
             }
         });
     }
 
-    if (btnBusqueda) btnBusqueda.addEventListener('click', aplicarFiltros);
-    if (btnClear) btnClear.addEventListener('click', limpiarFiltrosCatalogo);
     if (btnReset) btnReset.addEventListener('click', limpiarFiltrosCatalogo);
     if (btnEmptyReset) btnEmptyReset.addEventListener('click', limpiarFiltrosCatalogo);
+    if (selectOrden) selectOrden.addEventListener('change', ordenarTarjetas);
 
     onGlobal(document, 'change', event => {
         if (event.target.classList.contains('category-filter')) aplicarFiltros();
     });
+    onGlobal(window, 'agro:categoria', event => elegirSoloCategoria(event.detail));
 
-    renderizarCategorias();
-    renderizarCatalogoProductos();
-    renderizarCarrito();
     aplicarFiltros();
+    if (queryInicial || categoriaInicial) {
+        document.getElementById('catalogo')?.scrollIntoView();
+    }
 }
 
 alCargar(inicializarCatalogo);

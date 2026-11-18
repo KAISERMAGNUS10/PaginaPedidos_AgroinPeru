@@ -27,13 +27,13 @@ function nice(max: number): number {
           </linearGradient>
         </defs>
         @for (g of rejilla(); track g.y) {
-          <line [attr.x1]="padL" [attr.x2]="W - padR" [attr.y1]="g.y" [attr.y2]="g.y" stroke="#e2e8f0" stroke-dasharray="3 4" />
+          <line [attr.x1]="padL" [attr.x2]="W - padR" [attr.y1]="g.y" [attr.y2]="g.y" stroke="var(--borde)" stroke-dasharray="3 4" />
           <text [attr.x]="padL - 8" [attr.y]="g.y + 4" text-anchor="end">{{ g.texto }}</text>
         }
         @if (area()) { <path [attr.d]="area()" [attr.fill]="'url(#' + id + ')'" /> }
         @if (linea()) { <path [attr.d]="linea()" fill="none" [attr.stroke]="color()" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" /> }
         @for (p of puntos(); track p.i) {
-          <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3.6" fill="#fff" [attr.stroke]="color()" stroke-width="2">
+          <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3.6" fill="var(--ap-card, #fff)" [attr.stroke]="color()" stroke-width="2">
             <title>{{ p.etiqueta }}: {{ p.texto }}</title>
           </circle>
         }
@@ -109,7 +109,7 @@ export class GraficoLinea {
     <div class="ap-grafico">
       <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" role="img" aria-label="Gráfico de barras">
         @for (g of rejilla(); track g.y) {
-          <line [attr.x1]="padL" [attr.x2]="W - padR" [attr.y1]="g.y" [attr.y2]="g.y" stroke="#e2e8f0" stroke-dasharray="3 4" />
+          <line [attr.x1]="padL" [attr.x2]="W - padR" [attr.y1]="g.y" [attr.y2]="g.y" stroke="var(--borde)" stroke-dasharray="3 4" />
           <text [attr.x]="padL - 8" [attr.y]="g.y + 4" text-anchor="end">{{ g.texto }}</text>
         }
         @for (b of barras(); track b.i) {

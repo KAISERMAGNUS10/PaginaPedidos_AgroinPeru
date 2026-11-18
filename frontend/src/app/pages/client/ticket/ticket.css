@@ -3,8 +3,8 @@
    (El header vive en header.css, no lo dupliques aquí)
 ========================================== */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background-color: var(--fondo);
     margin: 0;
     padding: 0;
 }
@@ -16,7 +16,7 @@ body {
 }
 
 .ticket-card {
-    background: white;
+    background: var(--sup);
     border-radius: 14px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.08);
     padding: 35px 35px 30px 35px;
@@ -27,7 +27,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid var(--borde);
     padding-bottom: 18px;
     margin-bottom: 20px;
 }
@@ -43,7 +43,7 @@ body {
     flex: 1;
     margin: 0;
     font-size: 19px;
-    color: #0F4782;
+    color: var(--marca-txt);
     letter-spacing: 0.5px;
 }
 
@@ -56,33 +56,33 @@ body {
 }
 
 .badge-vigente {
-    background: #E8F5E9;
-    color: #1B7A1F;
+    background: var(--tinte-verde);
+    color: var(--txt-verde);
 }
 
 .badge-cancelado {
-    background: #FDEAEA;
-    color: #C5221F;
+    background: var(--tinte-rojo);
+    color: var(--rojo);
 }
 
 .badge-pagado {
-    background: #E3F2FD;
-    color: #0D47A1;
+    background: var(--tinte-azul);
+    color: var(--marca-txt);
 }
 
 .badge-listo-para-recojo {
-    background: #FFF3E0;
-    color: #E65100;
+    background: var(--tinte-ambar);
+    color: var(--txt-ambar);
 }
 
 .badge-entregado {
-    background: #ECEFF1;
-    color: #37474F;
+    background: var(--sup-3);
+    color: var(--txt-2);
 }
 
 .badge-expirado {
-    background: #FDEAEA;
-    color: #C5221F;
+    background: var(--tinte-rojo);
+    color: var(--rojo);
 }
 
 /* --- Grid de datos generales --- */
@@ -101,14 +101,14 @@ body {
 
 .ticket-meta-item span {
     font-size: 11px;
-    color: #888;
+    color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 
 .ticket-meta-item strong {
     font-size: 14px;
-    color: #222;
+    color: var(--txt);
     word-break: break-word;
 }
 
@@ -122,8 +122,8 @@ body {
 
 .ticket-table thead th {
     text-align: left;
-    background: #F4F7FA;
-    color: #555;
+    background: var(--sup-2);
+    color: var(--txt-2);
     padding: 10px 12px;
     font-size: 11.5px;
     text-transform: uppercase;
@@ -136,13 +136,13 @@ body {
 
 .ticket-table tbody td {
     padding: 10px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    color: #333;
+    border-bottom: 1px solid var(--borde);
+    color: var(--txt);
 }
 
 /* --- Bloque de total --- */
 .ticket-total-block {
-    background: #E8F5E9;
+    background: var(--tinte-verde);
     border-radius: 8px;
     padding: 16px 20px;
     display: flex;
@@ -154,20 +154,20 @@ body {
 .ticket-total-block span {
     font-size: 13px;
     font-weight: bold;
-    color: #1B7A1F;
+    color: var(--txt-verde);
     letter-spacing: 0.3px;
 }
 
 .ticket-total-block strong {
     font-size: 22px;
-    color: #1B7A1F;
+    color: var(--txt-verde);
 }
 
 /* --- Bloque QR --- */
 .ticket-qr-block {
     text-align: center;
     padding: 15px 10px 5px 10px;
-    border-top: 1px dashed #ddd;
+    border-top: 1px dashed var(--borde);
 }
 
 .ticket-qr-block img {
@@ -178,7 +178,7 @@ body {
 
 .ticket-qr-frame {
     display: inline-block;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--borde);
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 4px;
@@ -186,13 +186,13 @@ body {
 
 .ticket-table-empty {
     text-align: center !important;
-    color: #999;
+    color: var(--muted);
     padding: 18px 0 !important;
 }
 
 .ticket-qr-block p {
     font-size: 12.5px;
-    color: #777;
+    color: var(--muted);
     max-width: 380px;
     margin: 0 auto;
     line-height: 1.5;
@@ -219,12 +219,12 @@ body {
 }
 
 .btn-ticket-secondary {
-    background: #EAF2FA;
-    color: #0F4782;
+    background: var(--tinte-azul);
+    color: var(--marca-txt);
 }
 
 .btn-ticket-secondary:hover {
-    background: #d7e7f7;
+    background: var(--tinte-azul-2);
 }
 
 .btn-ticket-primary {
@@ -238,13 +238,13 @@ body {
 
 .ticket-empty-state {
     text-align: center;
-    color: #777;
+    color: var(--muted);
     margin-top: 40px;
     font-size: 14px;
 }
 
 .ticket-empty-state a {
-    color: #0F4782;
+    color: var(--marca-txt);
     font-weight: bold;
 }
 
@@ -259,6 +259,13 @@ body {
     }
     .ticket-card {
         box-shadow: none;
-        border: 1px solid #ccc;
+        border: 1px solid var(--borde-fuerte);
     }
+}
+
+@media (max-width: 600px) {
+    .ticket-page { margin: 14px auto 32px; padding: 0 10px; }
+    .ticket-card { padding: 18px 14px; }
+    .ticket-card table { font-size: 12.5px; }
+    .ticket-card th, .ticket-card td { padding-left: 6px; padding-right: 6px; }
 }

@@ -1,88 +1,61 @@
-<header class="navbar-tottus">
-        <div class="header-left">
-            <a routerLink="/" class="logo-container">
-                <img src="img/logoagroperu.jpg" alt="Agroinperu" class="logo-drop">
-                <span class="logo-text">
-                    <span class="text-blue">AGROIN</span><span class="text-red">PERU</span> <span class="text-blue">S.A.C</span>
-                </span>
-            </a>
-            <button class="btn-menu-tottus" id="btn-main-menu">
-                <span>☰</span> Menú
-            </button>
-        </div>
+<ap-tienda-header [catalogo]="true" />
 
-        <div class="header-search">
-            <input type="text" placeholder="Buscar en Agroinperu (conexiones, válvulas, mangueras...)" id="header-search-input">
-            <button type="button" class="btn-search" id="btn-header-search">🔍</button>
-        </div>
-
-        <div class="header-right">
-            <div class="user-session-container">
-                <div id="user-trigger" class="user-trigger">
-                    <div class="user-text-box">
-                        <span class="user-greeting-label">Hola,</span>
-                        <span class="user-name-label" id="user-display-name">Inicia sesión ⌄</span>
-                    </div>
-                </div>
-                
-                <div id="user-dropdown-menu" class="user-dropdown-tottus">
-                    <p id="dropdown-user-full">Cargando...</p>
-                    <a routerLink="/mi-cuenta">Mi cuenta</a>
-                    <a routerLink="/mis-pedidos">Mis Pedidos</a>
-                    <button id="btn-logout-tottus" class="btn-logout-tottus">Cerrar Sesión</button>
-                </div>
-            </div>
-
-            <a routerLink="/mi-cuenta" class="nav-extra-link">Mi cuenta</a>
-            <a routerLink="/mis-pedidos" class="nav-extra-link">Mis Pedidos</a>
-
-            <div class="notif-bell-container">
-                <a href="#" id="notif-bell" class="notif-bell-tottus">🔔<span class="notif-bell-dot" id="notif-bell-dot" style="display:none;"></span></a>
-                <div id="notif-dropdown" class="notif-dropdown"></div>
-            </div>
-
-            <a href="#" class="cart-tottus">
-                🛒 <span class="cart-badge" id="cart-counter">0</span>
-            </a>
-        </div>
-    </header>
-
-    <div id="menu-overlay" class="menu-overlay"></div>
-
-    <div id="side-menu" class="side-menu">
-        <div class="side-menu-header">
-            <h2>Categorías</h2>
-            <button id="btn-close-menu" class="btn-close-menu">✖</button>
-        </div>
-        
-        <div class="side-menu-content">
-            <p class="side-filter-help">Filtra el catálogo por una o varias categorías.</p>
-            <div id="category-filter-list"></div>
-            <button type="button" class="btn-clear-filters" id="btn-clear-filters">Limpiar filtros</button>
-        </div>
+<section class="hero">
+    <div class="hero-inner">
+        <p class="hero-kicker">AGROINPERU S.A.C. · Riego tecnificado</p>
+        <h1>Válvulas, conexiones, aspersores y mangueras para tu sistema de riego</h1>
+        <p class="hero-subtitle">Arma tu pedido en línea y recógelo en tienda. Reservamos el stock por 48 horas y pagas al recoger.</p>
+        <ul class="hero-datos">
+            <li><strong>401</strong> productos</li>
+            <li><strong>48 h</strong> de reserva</li>
+            <li><strong>IGV</strong> incluido</li>
+        </ul>
     </div>
+    <div class="hero-fotos" aria-hidden="true">
+        <img src="img/productos/fotos/168.jpg" alt="">
+        <img src="img/productos/fotos/100.jpg" alt="">
+        <img src="img/productos/fotos/333.jpg" alt="">
+    </div>
+</section>
 
-    <section class="hero">
-        <h1>Catálogo comercial de riego, mangueras y accesorios</h1>
-            </section>
-
-    <main class="container">
-        <section class="product-area">
-            <div class="catalog-toolbar">
-                <div>
-                    <h2>Catálogo de productos Agroinperu</h2>
-                    <p id="catalog-result-text" aria-live="polite">Mostrando todos los productos</p>
-                </div>
-                <button type="button" class="btn-reset-catalog" id="btn-reset-catalog" hidden>Ver todo el catálogo</button>
+<main class="container" id="catalogo">
+    <section class="product-area">
+        <div class="catalog-toolbar">
+            <div>
+                <h2>Catálogo</h2>
+                <p id="catalog-result-text" aria-live="polite">Cargando productos…</p>
             </div>
-
-            <div class="catalog-empty" id="catalog-empty" hidden>
-                <div class="catalog-empty-icon">🔎</div>
-                <h3>No encontramos productos</h3>
-                <p>Prueba con otra búsqueda o limpia los filtros seleccionados.</p>
-                <button type="button" id="btn-empty-reset">Mostrar todo</button>
+            <div class="catalog-acciones">
+                <label class="catalog-orden">
+                    <span>Ordenar por</span>
+                    <select id="catalog-sort">
+                        <option value="relevancia">Recomendados</option>
+                        <option value="precio-asc">Precio: menor a mayor</option>
+                        <option value="precio-desc">Precio: mayor a menor</option>
+                        <option value="nombre">Nombre (A–Z)</option>
+                    </select>
+                </label>
+                <button type="button" class="btn-reset-catalog" id="btn-reset-catalog" hidden>Quitar filtros</button>
             </div>
+        </div>
 
-            <div class="product-grid" id="product-grid"></div>
-        </section>
-    </main>
+        <div class="filtro-chips" id="category-filter-list" aria-label="Filtrar por categoría"></div>
+        <button type="button" id="btn-clear-filters" hidden></button>
+
+        <div class="catalog-empty" id="catalog-empty" hidden>
+            <h3>No encontramos productos</h3>
+            <p>Revisa cómo lo escribiste, prueba con una palabra más corta (por ejemplo "codo" o "1/2") o quita los filtros.</p>
+            <button type="button" id="btn-empty-reset">Ver todo el catálogo</button>
+        </div>
+
+        <div class="product-grid" id="product-grid"></div>
+    </section>
+</main>
+
+<footer class="tienda-footer">
+    <div>
+        <strong>AGROINPERU S.A.C.</strong>
+        <span>RUC 20603299494 · Pedidos web con recojo en tienda</span>
+    </div>
+    <span>© 2026 AGROINPERU. Precios en soles con IGV.</span>
+</footer>

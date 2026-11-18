@@ -42,7 +42,7 @@
                 @if (t.productos.length > 3) { <li><span style="color: var(--ap-muted)">+ {{ t.productos.length - 3 }} producto(s) más</span></li> }
               </ul>
               @if (avance(t) > 0) {
-                <div class="ap-chip" style="align-self: flex-start; background: #fef3c7; color: #92400e">En curso: {{ avance(t) }}/{{ t.productos.length }} separados</div>
+                <div class="ap-chip" style="align-self: flex-start; background: var(--tinte-ambar); color: var(--txt-ambar)">En curso: {{ avance(t) }}/{{ t.productos.length }} separados</div>
               }
             </div>
             <div class="pk-card-pie">

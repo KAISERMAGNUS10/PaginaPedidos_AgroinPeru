@@ -3,8 +3,8 @@
    (El header vive en header.css, no lo dupliques aquí)
 ========================================== */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background-color: var(--fondo);
     margin: 0;
     padding: 0;
 }
@@ -22,22 +22,22 @@ body {
 .checkout-form-section {
     flex: 2;
     min-width: 300px;
-    background: white;
+    background: var(--sup);
     padding: 25px 30px;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--borde);
 }
 
 .checkout-form-section h2 {
     margin-top: 0;
-    color: #333;
+    color: var(--txt);
     font-size: 20px;
 }
 
 .pickup-only-notice {
-    background: #E8F5E9;
+    background: var(--tinte-verde);
     border: 1px solid #B7E1B9;
-    color: #256029;
+    color: var(--txt-verde);
     padding: 12px 15px;
     border-radius: 8px;
     font-size: 13.5px;
@@ -55,7 +55,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--borde-fuerte);
     border-radius: 6px;
     padding: 10px 12px;
     font-size: 14px;
@@ -65,7 +65,7 @@ body {
 
 .comprobante-option:has(input:checked) {
     border-color: #0F4782;
-    background: #EAF2FA;
+    background: var(--tinte-azul);
     font-weight: bold;
 }
 
@@ -87,7 +87,7 @@ body {
     display: block;
     font-size: 13px;
     font-weight: bold;
-    color: #333;
+    color: var(--txt);
     margin-bottom: 6px;
 }
 
@@ -96,11 +96,11 @@ body {
     width: 100%;
     box-sizing: border-box;
     padding: 10px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--borde-fuerte);
     border-radius: 6px;
     font-size: 14px;
     outline: none;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
 
 .input-group input:focus,
@@ -110,12 +110,12 @@ body {
 
 .input-group input.input-invalid {
     border-color: #E30613;
-    background: #FFF5F5;
+    background: var(--tinte-rojo);
 }
 
 .input-error {
     display: block;
-    color: #E30613;
+    color: var(--rojo);
     font-size: 12px;
     margin-top: 4px;
     min-height: 14px;
@@ -124,13 +124,13 @@ body {
 .campo-ayuda {
     display: block;
     font-size: 11.5px;
-    color: #94A3B8;
+    color: var(--muted);
     margin-top: 5px;
 }
 
 .campo-bloqueado {
-    background-color: #EFEFEF;
-    color: #6B7280;
+    background-color: var(--sup-3);
+    color: var(--muted);
     cursor: not-allowed;
 }
 
@@ -160,10 +160,10 @@ body {
 .checkout-summary-section {
     flex: 1;
     min-width: 260px;
-    background: white;
+    background: var(--sup);
     padding: 25px;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--borde);
     position: sticky;
     top: 20px;
 }
@@ -171,22 +171,22 @@ body {
 .checkout-summary-section h3 {
     margin-top: 0;
     font-size: 18px;
-    color: #333;
+    color: var(--txt);
 }
 
 .summary-row {
     display: flex;
     justify-content: space-between;
     margin-bottom: 12px;
-    color: #555;
+    color: var(--txt-2);
     font-size: 14px;
 }
 
 .summary-total {
     font-size: 16px;
     font-weight: bold;
-    color: #333;
-    border-top: 1px solid #eee;
+    color: var(--txt);
+    border-top: 1px solid var(--borde);
     padding-top: 15px;
     margin-top: 5px;
 }
@@ -194,4 +194,29 @@ body {
 @media (max-width: 600px) {
     .input-row { flex-direction: column; gap: 0; }
     .comprobante-toggle { flex-direction: column; }
+}
+
+/* Opciones Boleta / Factura: el radio a la izquierda del texto */
+.input-group .comprobante-option {
+    display: flex;
+    margin: 0;
+    color: var(--txt);
+    font-size: 14px;
+    font-weight: 500;
+}
+.input-group .comprobante-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: var(--marca);
+}
+.comprobante-option:has(input:checked) { border-color: var(--marca-txt); font-weight: 600; }
+.pickup-only-notice { border-color: color-mix(in srgb, var(--txt-verde) 35%, transparent); }
+
+@media (max-width: 600px) {
+    .checkout-container { margin: 16px auto 40px; padding: 0 12px; gap: 16px; }
+    .checkout-form-section { min-width: 0; padding: 18px 16px; }
+    .comprobante-toggle { flex-direction: row; gap: 10px; }
 }

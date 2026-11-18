@@ -3,17 +3,17 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #F8FAFC;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
+    background-color: var(--sup-2);
     margin: 0;
     padding: 0;
-    color: #1E293B;
+    color: var(--txt);
 }
 
 .registro-topbar {
     padding: 18px 30px;
-    background: white;
-    border-bottom: 1px solid #eee;
+    background: var(--sup);
+    border-bottom: 1px solid var(--borde);
 }
 
 .registro-logo {
@@ -32,7 +32,7 @@ body {
 .registro-logo-text {
     font-size: 18px;
     font-weight: 900;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
 
 .text-cyan { color: #00AEEF; }
@@ -45,7 +45,7 @@ body {
 }
 
 .registro-card {
-    background: white;
+    background: var(--sup);
     width: 100%;
     max-width: 480px;
     padding: 40px 38px;
@@ -56,12 +56,12 @@ body {
 .registro-card h1 {
     font-size: 22px;
     margin: 0 0 8px 0;
-    color: #0F172A;
+    color: var(--txt);
 }
 
 .registro-subtitulo {
     font-size: 13.5px;
-    color: #64748B;
+    color: var(--muted);
     margin: 0 0 28px 0;
 }
 
@@ -83,7 +83,7 @@ body {
     display: block;
     font-size: 13px;
     font-weight: bold;
-    color: #334155;
+    color: var(--txt-2);
     margin-bottom: 6px;
 }
 
@@ -91,11 +91,11 @@ body {
 .campo select {
     width: 100%;
     padding: 11px 13px;
-    border: 1px solid #CBD5E1;
+    border: 1px solid var(--borde-fuerte);
     border-radius: 7px;
     font-size: 14px;
     outline: none;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Arial, sans-serif;
 }
 
 .campo input:focus,
@@ -106,14 +106,14 @@ body {
 .campo-ayuda {
     display: block;
     font-size: 12px;
-    color: #94A3B8;
+    color: var(--muted);
     margin-top: 5px;
 }
 
 .campo-error {
     display: block;
     font-size: 12px;
-    color: #E30613;
+    color: var(--rojo);
     margin-top: 5px;
     min-height: 14px;
 }
@@ -138,13 +138,13 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0 14px;
-    background: #E9ECEF;
-    border: 1px solid #CBD5E1;
+    background: var(--sup-3);
+    border: 1px solid var(--borde-fuerte);
     border-right: none;
     border-radius: 7px 0 0 7px;
     font-size: 14px;
     font-weight: bold;
-    color: #495057;
+    color: var(--txt-2);
     flex-shrink: 0;
 }
 
@@ -181,8 +181,8 @@ body {
     align-items: center;
     gap: 6px;
     font-size: 12.5px;
-    color: #94A3B8;
-    background: #F1F5F9;
+    color: var(--muted);
+    background: var(--sup-3);
     padding: 8px 10px;
     border-radius: 6px;
 }
@@ -192,7 +192,7 @@ body {
 }
 
 .req-item.cumplido {
-    color: #1B7A1F;
+    color: var(--txt-verde);
     background: #E6F4EA;
 }
 
@@ -213,7 +213,7 @@ body {
 
 .campo-checkbox label {
     font-size: 12.5px;
-    color: #475569;
+    color: var(--txt-2);
     line-height: 1.4;
     cursor: pointer;
 }
@@ -222,7 +222,7 @@ body {
     width: 100%;
     padding: 13px;
     background: #D9DCE1;
-    color: #8A8F98;
+    color: var(--muted);
     border: none;
     border-radius: 8px;
     font-size: 15px;
@@ -249,7 +249,7 @@ body {
 .registro-login-link {
     text-align: center;
     font-size: 13px;
-    color: #64748B;
+    color: var(--muted);
     margin-top: 22px;
 }
 
@@ -275,8 +275,8 @@ body {
     margin: 2px 0 8px;
     border: 1px solid #0F4782;
     border-radius: 8px;
-    background: #FFFFFF;
-    color: #0F4782;
+    background: var(--sup);
+    color: var(--marca-txt);
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
@@ -284,7 +284,7 @@ body {
 }
 
 .btn-legal:hover {
-    background: #EFF6FF;
+    background: var(--tinte-azul);
 }
 
 .btn-legal:active {
@@ -318,7 +318,7 @@ body {
     max-height: min(760px, 92vh);
     display: flex;
     flex-direction: column;
-    background: #FFFFFF;
+    background: var(--sup);
     border-radius: 14px;
     box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
     overflow: hidden;
@@ -330,13 +330,13 @@ body {
     justify-content: space-between;
     gap: 20px;
     padding: 20px 24px 16px;
-    border-bottom: 1px solid #E2E8F0;
+    border-bottom: 1px solid var(--borde);
 }
 
 .legal-modal-kicker {
     display: block;
     margin-bottom: 3px;
-    color: #0F4782;
+    color: var(--marca-txt);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -344,7 +344,7 @@ body {
 
 .legal-modal-header h2 {
     margin: 0;
-    color: #0F172A;
+    color: var(--txt);
     font-size: 21px;
 }
 
@@ -354,30 +354,30 @@ body {
     flex-shrink: 0;
     border: 0;
     border-radius: 50%;
-    background: #F1F5F9;
-    color: #475569;
+    background: var(--sup-3);
+    color: var(--txt-2);
     font-size: 26px;
     line-height: 1;
     cursor: pointer;
 }
 
 .legal-modal-close:hover {
-    background: #E2E8F0;
-    color: #0F172A;
+    background: var(--sup-3);
+    color: var(--txt);
 }
 
 .legal-tabs {
     display: flex;
     gap: 8px;
     padding: 14px 24px 0;
-    background: #FFFFFF;
+    background: var(--sup);
 }
 
 .legal-tab {
     border: 0;
     border-bottom: 3px solid transparent;
     background: transparent;
-    color: #64748B;
+    color: var(--muted);
     padding: 10px 12px;
     font-size: 13px;
     font-weight: 700;
@@ -386,7 +386,7 @@ body {
 
 .legal-tab.active {
     border-bottom-color: #0F4782;
-    color: #0F4782;
+    color: var(--marca-txt);
 }
 
 .legal-modal-body {
@@ -397,7 +397,7 @@ body {
 
 .legal-panel {
     display: none;
-    color: #475569;
+    color: var(--txt-2);
     font-size: 13.5px;
 }
 
@@ -407,13 +407,13 @@ body {
 
 .legal-panel h3 {
     margin: 0 0 4px;
-    color: #0F172A;
+    color: var(--txt);
     font-size: 19px;
 }
 
 .legal-panel h4 {
     margin: 20px 0 6px;
-    color: #1E293B;
+    color: var(--txt);
     font-size: 14px;
 }
 
@@ -422,7 +422,7 @@ body {
 }
 
 .legal-panel > p:first-of-type {
-    color: #94A3B8;
+    color: var(--muted);
     font-size: 12px;
 }
 
@@ -430,8 +430,8 @@ body {
     display: flex;
     justify-content: flex-end;
     padding: 14px 24px;
-    border-top: 1px solid #E2E8F0;
-    background: #F8FAFC;
+    border-top: 1px solid var(--borde);
+    background: var(--sup-2);
 }
 
 .btn-legal-entendido {

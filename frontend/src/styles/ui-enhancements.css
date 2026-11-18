@@ -15,9 +15,9 @@
     grid-template-columns: 28px 1fr;
     gap: 10px;
     align-items: start;
-    background: #fff;
-    color: #263747;
-    border: 1px solid #dfe6ec;
+    background: var(--sup);
+    color: var(--txt);
+    border: 1px solid var(--borde);
     border-left: 5px solid #0F4782;
     border-radius: 10px;
     padding: 13px 14px;
@@ -32,7 +32,7 @@
 .agro-ui-toast.is-warning { border-left-color: #d97706; }
 .agro-ui-toast.is-error { border-left-color: #c5221f; }
 .agro-ui-toast-icon { font-size: 18px; line-height: 1.2; }
-.agro-ui-toast strong { display: block; color: #163b61; margin-bottom: 3px; font-size: 13px; }
+.agro-ui-toast strong { display: block; color: var(--marca-txt); margin-bottom: 3px; font-size: 13px; }
 .agro-ui-toast span { display: block; font-size: 12.5px; line-height: 1.4; }
 
 .input-invalid,

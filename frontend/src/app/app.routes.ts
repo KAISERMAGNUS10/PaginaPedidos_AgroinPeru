@@ -13,12 +13,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'AIDP - Agro Integral del Perú',
+        title: 'AGROINPERU · Catálogo de riego',
         loadComponent: () => import('./pages/public/home/home').then(m => m.Home)
       },
       {
         path: 'producto',
-        title: 'Detalle de Producto - AIDP',
+        title: 'AGROINPERU · Producto',
         loadComponent: () => import('./pages/public/producto/producto').then(m => m.Producto)
       },
       {
@@ -39,7 +39,7 @@ export const routes: Routes = [
       },
       {
         path: 'carrito',
-        title: 'AGROINPERU - Carro de Compras',
+        title: 'AGROINPERU - Carrito',
         loadComponent: () => import('./pages/client/carrito/carrito').then(m => m.Carrito)
       },
       {

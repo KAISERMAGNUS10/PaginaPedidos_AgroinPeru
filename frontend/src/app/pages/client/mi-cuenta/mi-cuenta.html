@@ -1,75 +1,128 @@
-<main class="split-layout">
-  <section class="left-panel">
-    <div class="logo">
-      <img src="img/logoagroperu.jpg" alt="Icono" class="logo-icon">
-      <div class="logo-text">
-        <span class="text-cyan">AGROIN</span><span class="text-red">PERU</span> <span class="text-cyan">S.A.C</span>
+<ap-tienda-header />
+
+<main class="cuenta">
+  @if (sesion(); as s) {
+    <section class="cuenta-perfil">
+      <div class="cuenta-avatar" aria-hidden="true">{{ iniciales() }}</div>
+      <div class="cuenta-perfil-texto">
+        <h1>{{ s.Nombre }} {{ s.Apellidos }}</h1>
+        <p>{{ s.Correo }} · <span class="cuenta-rol">{{ rolTexto() }}</span></p>
       </div>
-    </div>
+      @if (!esCliente()) {
+        <a class="cuenta-btn cuenta-btn-sec" [routerLink]="panel()">Ir a mi panel</a>
+      }
+    </section>
 
-    <div class="hero-content">
-      <h1>Tu cuenta, siempre protegida.</h1>
-      <p>Usa una contraseña que solo tú conozcas: mínimo 8 caracteres, con mayúscula, minúscula y número.</p>
-    </div>
+    @if (temporal()) {
+      <div class="cuenta-aviso" role="alert">
+        <ap-icono nombre="alerta" />
+        <p>Estás usando la <b>contraseña temporal</b> que te dio soporte. Crea una contraseña nueva para seguir usando tu cuenta.</p>
+      </div>
+    }
 
-    <footer class="panel-footer">
-      © 2026 AGROINPERU S.A.C. Todos los derechos reservados.
-    </footer>
-  </section>
-
-  <section class="right-panel">
-    <div class="forms-container">
-      <div class="form-card">
-        <h2>Mi cuenta</h2>
-
-        @if (sesion(); as s) {
-          <p class="subtitle">{{ s.Nombre }} {{ s.Apellidos }}</p>
-
-          @if (s.DebeCambiarPassword) {
-            <div class="aviso-temporal">
-              Estás usando la <b>contraseña temporal</b> que te asignó soporte. Crea una nueva para continuar.
-            </div>
-          }
-
-          <dl class="datos-cuenta">
-            <dt>Correo</dt><dd>{{ s.Correo }}</dd>
-            @if (datos()?.DocumentoNumero) {
-              <dt>Documento</dt><dd>{{ datos()?.DocumentoTipo }} {{ datos()?.DocumentoNumero }}</dd>
-            }
-            @if (datos()?.Telefono) {
-              <dt>Celular</dt><dd>{{ datos()?.Telefono }}</dd>
-            }
-          </dl>
-
-          <h3 style="margin: 0 0 14px; font-size: 1.1rem; color: #0F172A;">Cambiar contraseña</h3>
-          <form (ngSubmit)="cambiar()">
-            <div class="input-group">
-              <label for="pass-actual">{{ s.DebeCambiarPassword ? 'Contraseña temporal (12345678)' : 'Contraseña actual' }}</label>
-              <input type="password" id="pass-actual" name="actual" autocomplete="current-password" required [(ngModel)]="actual">
-            </div>
-            <div class="input-group">
-              <label for="pass-nueva">Nueva contraseña</label>
-              <input type="password" id="pass-nueva" name="nueva" autocomplete="new-password" required [(ngModel)]="nueva">
-            </div>
-            <div class="input-group">
-              <label for="pass-confirmar">Confirmar nueva contraseña</label>
-              <input type="password" id="pass-confirmar" name="confirmar" autocomplete="new-password" required [(ngModel)]="confirmar">
-            </div>
-            <div class="form-error" aria-live="polite">{{ error() }}</div>
-            <button type="submit" class="btn-primary" [disabled]="guardando()">
-              {{ guardando() ? 'Guardando...' : 'Guardar nueva contraseña' }}
+    <div class="cuenta-cuerpo">
+      @if (!temporal()) {
+        <nav class="cuenta-tabs" aria-label="Secciones de mi cuenta">
+          <button type="button" [class.activo]="seccion() === 'datos'" (click)="seccion.set('datos')">
+            <ap-icono nombre="usuario" /> Mis datos
+          </button>
+          <button type="button" [class.activo]="seccion() === 'seguridad'" (click)="seccion.set('seguridad')">
+            <ap-icono nombre="llave" /> Contraseña
+          </button>
+          @if (esCliente()) {
+            <button type="button" [class.activo]="seccion() === 'pedidos'" (click)="seccion.set('pedidos')">
+              <ap-icono nombre="compras" /> Mis pedidos
             </button>
-          </form>
-
-          @if (!s.DebeCambiarPassword) {
-            <div class="divider">
-              <a [routerLink]="destino()" style="color: #00AEEF; font-weight: bold; text-decoration: none;">← Volver</a>
-            </div>
           }
-        } @else {
-          <p class="subtitle">Cargando…</p>
+          <button type="button" class="cuenta-tab-salir" (click)="cerrarSesion()">
+            <ap-icono nombre="salir" /> Cerrar sesión
+          </button>
+        </nav>
+      }
+
+      <section class="cuenta-panel">
+        @switch (seccion()) {
+          @case ('datos') {
+            <h2>Mis datos</h2>
+            <p class="cuenta-ayuda">Estos datos se usan en tus pedidos y comprobantes. Si alguno está mal, pídele a soporte que lo corrija.</p>
+            <dl class="cuenta-datos">
+              <div><dt>Nombres</dt><dd>{{ s.Nombre }}</dd></div>
+              <div><dt>Apellidos</dt><dd>{{ s.Apellidos }}</dd></div>
+              <div><dt>Correo</dt><dd>{{ s.Correo }}</dd></div>
+              <div><dt>Tipo de cuenta</dt><dd>{{ rolTexto() }}</dd></div>
+              <div>
+                <dt>Documento</dt>
+                <dd>{{ datos()?.DocumentoNumero ? (datos()?.DocumentoTipo + ' ' + datos()?.DocumentoNumero) : '—' }}</dd>
+              </div>
+              <div><dt>Celular</dt><dd>{{ datos()?.Telefono || '—' }}</dd></div>
+            </dl>
+          }
+
+          @case ('seguridad') {
+            <h2>Cambiar contraseña</h2>
+            <p class="cuenta-ayuda">Usa una contraseña que no uses en otras páginas.</p>
+            <form class="cuenta-form" (ngSubmit)="cambiar()">
+              <label>
+                <span>{{ temporal() ? 'Contraseña temporal' : 'Contraseña actual' }}</span>
+                <input [type]="verPassword() ? 'text' : 'password'" name="actual" autocomplete="current-password" required [(ngModel)]="actual">
+              </label>
+              <label>
+                <span>Nueva contraseña</span>
+                <input [type]="verPassword() ? 'text' : 'password'" name="nueva" autocomplete="new-password" required
+                       [ngModel]="nueva()" (ngModelChange)="nueva.set($event)">
+              </label>
+              <ul class="cuenta-reglas" aria-label="Requisitos de la contraseña">
+                @for (r of reglas(); track r.texto) {
+                  <li [class.ok]="r.ok"><ap-icono [nombre]="r.ok ? 'check' : 'x'" /> {{ r.texto }}</li>
+                }
+              </ul>
+              <label>
+                <span>Repite la nueva contraseña</span>
+                <input [type]="verPassword() ? 'text' : 'password'" name="confirmar" autocomplete="new-password" required [(ngModel)]="confirmar">
+              </label>
+              <label class="cuenta-check">
+                <input type="checkbox" [checked]="verPassword()" (change)="verPassword.set(!verPassword())"> Mostrar contraseñas
+              </label>
+              <p class="cuenta-error" aria-live="polite">{{ error() }}</p>
+              <button type="submit" class="cuenta-btn" [disabled]="guardando()">
+                {{ guardando() ? 'Guardando…' : 'Guardar contraseña' }}
+              </button>
+            </form>
+          }
+
+          @case ('pedidos') {
+            <div class="cuenta-panel-cab">
+              <h2>Mis pedidos</h2>
+              <a routerLink="/mis-pedidos" class="cuenta-enlace">Ver todos y gestionar →</a>
+            </div>
+            @if (pedidos(); as lista) {
+              @if (lista.length === 0) {
+                <div class="cuenta-vacio">
+                  <p>Todavía no tienes pedidos.</p>
+                  <a routerLink="/" class="cuenta-btn">Ir al catálogo</a>
+                </div>
+              } @else {
+                <ul class="cuenta-pedidos">
+                  @for (p of lista.slice(0, 6); track p.id) {
+                    <li>
+                      <a [routerLink]="'/ticket'" [queryParams]="{ id: p.id }">
+                        <span class="cuenta-pedido-cod">{{ p.id }}</span>
+                        <span class="cuenta-pedido-fecha">{{ fecha(p.fechaEmision) }} · {{ p.productos.length }} {{ p.productos.length === 1 ? 'producto' : 'productos' }}</span>
+                        <span class="estado-badge estado-{{ p.estado }}">{{ textoEstado(p.estado) }}</span>
+                        <strong>{{ soles(p.total) }}</strong>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              }
+            } @else {
+              <p class="cuenta-ayuda">Cargando pedidos…</p>
+            }
+          }
         }
-      </div>
+      </section>
     </div>
-  </section>
+  } @else {
+    <p class="cuenta-ayuda">Cargando…</p>
+  }
 </main>

@@ -2,6 +2,8 @@
 // Migrado de mis-pedidos.html + mis-pedidos.js
 import { Component, OnDestroy, ViewEncapsulation, afterNextRender } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TiendaHeader } from '../../../shared/tienda-header';
+import { Icono } from '../../../shared/icono';
 import { ejecutarPagina, type Limpiador } from '../../../core/utils/navegacion';
 import { alCargar, irA } from '../../../core/utils/navegacion';
 import { guardarTicketActualId, obtenerEstadoTicketActualizado, obtenerSesionSegura } from '../../../core/utils/auth-storage';
@@ -19,7 +21,7 @@ import { iniciarGlobalPublico } from '../../../core/utils/layout-global';
 
 @Component({
   selector: 'app-mis-pedidos',
-  imports: [RouterLink],
+  imports: [RouterLink, TiendaHeader, Icono],
   templateUrl: './mis-pedidos.html',
   styleUrls: ['../../../../styles/header.css', './mis-pedidos.css', '../../../../styles/ui-enhancements.css'],
   // Se conserva el CSS original tal cual: sin encapsulación y respetando los espacios del HTML viejo.
@@ -180,7 +182,7 @@ function renderizarPedidos() {
 
             ${persona ? `
                 <div class="pedido-persona-autorizada">
-                    🧾 Autorizado para recoger: <strong>${persona.nombre}</strong> — DNI ${persona.dni}
+                    Autorizado para recoger: <strong>${persona.nombre}</strong> — DNI ${persona.dni}
                 </div>` : ''}
 
             <div class="pedido-actions">
