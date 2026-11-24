@@ -352,3 +352,37 @@
 
 .ap-shell a.ap-btn { text-decoration: none; }
 .ap-celda-acciones { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+
+/* ---------- Soporte: tabla de solicitudes ---------- */
+/* Los botones Restablecer / Rechazar siempre a la vista (sin desplazar la tabla). */
+.sp-acciones { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.sp-acciones .ap-btn { white-space: nowrap; }
+.sp-tabla td { vertical-align: middle; }
+.sp-tabla th, .sp-tabla td { padding-left: 12px; padding-right: 12px; }
+
+/* Pantallas medianas: los botones uno debajo del otro para que quepan. */
+@media (max-width: 1280px) {
+  .sp-acciones { flex-direction: column; align-items: stretch; }
+  .sp-acciones .ap-btn { justify-content: center; }
+}
+
+/* Celular y pantallas angostas: cada solicitud se ve como una tarjeta. */
+@media (max-width: 960px) {
+  .sp-tabla thead { display: none; }
+  .sp-tabla, .sp-tabla tbody, .sp-tabla tr, .sp-tabla td { display: block; width: 100%; }
+  .sp-tabla tr { padding: 14px 16px; border-bottom: 1px solid var(--ap-border); }
+  .sp-tabla td { padding: 4px 0; border: 0; text-align: left; }
+  .sp-tabla td[data-etiqueta]::before {
+    content: attr(data-etiqueta);
+    display: block;
+    margin-bottom: 1px;
+    color: var(--ap-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .sp-tabla .sp-acciones-celda { padding-top: 10px; }
+  .sp-acciones { display: flex; flex-direction: row; justify-content: stretch; }
+  .sp-acciones .ap-btn { flex: 1; justify-content: center; }
+}

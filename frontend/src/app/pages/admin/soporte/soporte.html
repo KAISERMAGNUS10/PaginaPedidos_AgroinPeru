@@ -28,9 +28,9 @@
     <div class="ap-vacio"><ap-icono nombre="llave" /><p>No hay solicitudes {{ filtro() === 'PENDIENTE' ? 'pendientes' : 'en esta vista' }}.</p></div>
   } @else {
     <div class="ap-tabla-wrap">
-      <table class="ap-tabla">
+      <table class="ap-tabla sp-tabla">
         <thead>
-          <tr><th>Usuario</th><th>Documento</th><th>Celular</th><th>Solicitada</th><th>Estado</th><th class="num">Acciones</th></tr>
+          <tr><th>Usuario</th><th>Documento</th><th>Solicitada</th><th>Estado</th><th class="num">Acciones</th></tr>
         </thead>
         <tbody>
           @for (s of visibles(); track s.id) {
@@ -41,21 +41,25 @@
                   <div><strong>{{ s.usuario.nombre }}</strong><span class="ap-sub">{{ s.usuario.correo }} · {{ s.usuario.rol }}</span></div>
                 </div>
               </td>
-              <td>{{ s.usuario.documentoTipo }} <span class="ap-mono">{{ s.usuario.documentoNumero }}</span></td>
-              <td>{{ s.usuario.telefono }}</td>
-              <td>{{ fechaHora(s.fechaSolicitud) }}<span class="ap-sub">{{ hace(s.fechaSolicitud) }}</span></td>
-              <td>
+              <td data-etiqueta="Documento">
+                {{ s.usuario.documentoTipo }} <span class="ap-mono">{{ s.usuario.documentoNumero }}</span>
+                <span class="ap-sub">{{ s.usuario.telefono || 'Sin celular' }}</span>
+              </td>
+              <td data-etiqueta="Solicitada">{{ fechaHora(s.fechaSolicitud) }}<span class="ap-sub">{{ hace(s.fechaSolicitud) }}</span></td>
+              <td data-etiqueta="Estado">
                 <span [class]="'ap-badge ' + claseEstado(s.estado)">{{ s.estado }}</span>
                 @if (s.estado !== 'PENDIENTE') {
                   <span class="ap-sub">{{ s.atendidoPor }} · {{ fechaHora(s.fechaAtencion) }}</span>
                 }
               </td>
-              <td class="num">
+              <td class="num sp-acciones-celda">
                 @if (s.estado === 'PENDIENTE') {
-                  <button type="button" class="ap-btn ap-btn-primario ap-btn-chico" [disabled]="procesando() === s.id" (click)="restablecer(s)">
-                    <ap-icono nombre="llave" /> Restablecer
-                  </button>
-                  <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" style="margin-left: 6px" [disabled]="procesando() === s.id" (click)="rechazar(s)">Rechazar</button>
+                  <div class="sp-acciones">
+                    <button type="button" class="ap-btn ap-btn-primario ap-btn-chico" [disabled]="procesando() === s.id" (click)="restablecer(s)">
+                      <ap-icono nombre="llave" /> Restablecer
+                    </button>
+                    <button type="button" class="ap-btn ap-btn-suave ap-btn-chico" [disabled]="procesando() === s.id" (click)="rechazar(s)">Rechazar</button>
+                  </div>
                 } @else {
                   <span class="ap-sub">{{ s.observacion }}</span>
                 }
